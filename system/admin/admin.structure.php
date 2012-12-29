@@ -15,7 +15,6 @@ list($usr['auth_read'], $usr['auth_write'], $usr['isadmin']) = cot_auth('admin',
 cot_block($usr['isadmin']);
 
 require_once cot_incfile('extrafields');
-require_once cot_incfile('auth');
 require_once cot_incfile('structure');
 
 $id = cot_import('id', 'G', 'INT');
@@ -206,6 +205,10 @@ else
 		if (!cot_error_found())
 		{
 			cot_message('Updated');
+		}
+		else
+		{
+			cot_error('adm_structure_somenotupdated');
 		}
 		cot_redirect(cot_url('admin', 'm=structure&n='.$n.'&mode='.$mode.'&d='.$durl, '', true));
 	}
@@ -460,6 +463,11 @@ else
 			'ADMIN_STRUCTURE_COUNTER_ROW' => $ii,
 		));
 		$t->parse('MAIN.DEFAULT');
+
+		// flush post buffer if it contains Update Table data
+		$uri = str_replace('&_ajax=1', '', $_SERVER['REQUEST_URI']);
+		$hash = md5($uri);
+		if (is_array($_SESSION['cot_buffer'][$hash]['rstructurecode'])) unset($_SESSION['cot_buffer'][$hash]);
 
 		$t->assign(array(
 			'ADMIN_STRUCTURE_URL_FORM_ADD' => cot_url('admin', 'm=structure&n='.$n.'&mode='.$mode.'&a=add&d='.$durl),
