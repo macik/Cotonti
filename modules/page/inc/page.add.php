@@ -5,7 +5,7 @@
  * @package page
  * @version 0.9.6
  * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2012
+ * @copyright Copyright (c) Cotonti Team 2008-2013
  * @license BSD License
  */
 
@@ -54,6 +54,13 @@ if ($a == 'add')
 
 	list($usr['auth_read'], $usr['auth_write'], $usr['isadmin']) = cot_auth('page', $rpage['page_cat']);
 	cot_block($usr['auth_write']);
+
+	/* === Hook === */
+	foreach (cot_getextplugins('page.add.add.import') as $pl)
+	{
+		include $pl;
+	}
+	/* ===== */
 
 	cot_page_validate($rpage);
 

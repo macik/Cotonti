@@ -5,7 +5,7 @@
  * @package page
  * @version 0.9.6
  * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2012
+ * @copyright Copyright (c) Cotonti Team 2008-2013
  * @license BSD License
  */
 
@@ -71,6 +71,13 @@ if ($a == 'update')
 		cot_page_delete($id, $row_page);
 		cot_redirect(cot_url('page', "c=" . $row_page['page_cat'], '', true));
 	}
+
+	/* === Hook === */
+	foreach (cot_getextplugins('page.edit.update.import') as $pl)
+	{
+		include $pl;
+	}
+	/* ===== */
 
 	cot_page_validate($rpage);
 
