@@ -17,6 +17,7 @@ Hooks=usertags.main
 
 defined('COT_CODE') or die('Wrong URL.');
 
+global $L, $Ls, $R;
 require_once cot_incfile('pm', 'module');
 
 if ($user_data['user_id'] > 0)
@@ -29,5 +30,3 @@ else
 	$temp_array['PM'] = '';
 	$temp_array['PMNOTIFY'] = '';
 }
-
-?>

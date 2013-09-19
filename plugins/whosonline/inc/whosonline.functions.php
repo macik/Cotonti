@@ -32,5 +32,3 @@ function cot_userisonline($id)
 	}
 	return ($res);
 }
-
-?>

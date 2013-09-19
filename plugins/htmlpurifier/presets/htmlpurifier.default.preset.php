@@ -36,5 +36,3 @@ $htmlpurifier_preset = array(
 	'URI.DisableExternal'						=> false,
 	'URI.DisableExternalResources'				=> false
 );
-
-?>

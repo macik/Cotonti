@@ -25,9 +25,9 @@
 
 <!-- BEGIN: MAIN -->
 		<h2>{PHP.L.Structure}</h2>
-		{FILE "{PHP.cfg.themes_dir}/{PHP.cfg.defaulttheme}/warnings.tpl"}
+		{FILE "{PHP.cfg.system_dir}/admin/tpl/warnings.tpl"}
 		<div class="block button-toolbar">
-				<a href="{ADMIN_STRUCTURE_URL_EXTRAFIELDS}" class="button">{PHP.L.adm_extrafields_desc}</a>
+				<a href="{ADMIN_STRUCTURE_URL_EXTRAFIELDS}" class="button">{PHP.L.adm_extrafields}</a>
 				<a href="{ADMIN_PAGE_STRUCTURE_RESYNCALL}" class="ajax button special" title="{PHP.L.adm_tpl_resyncalltitle}">{PHP.L.Resync}</a>
 				<!-- IF {ADMIN_STRUCTURE_I18N_URL} -->
 				<a href="{ADMIN_STRUCTURE_I18N_URL}" class="button">{PHP.L.i18n_structure}</a>
@@ -75,11 +75,49 @@
 					<td class="{ADMIN_STRUCTURE_ODDEVEN}">{ADMIN_STRUCTURE_EXTRAFLD}</td>
 				</tr>
 				<!-- END: EXTRAFLD -->
+			</table>
+				<!-- BEGIN: CONFIG -->
+				<h2>{PHP.L.Configuration}</h2>{CONFIG_HIDDEN}
+				{ADMIN_CONFIG_EDIT_CUSTOM}
+
+				<table class="cells">
+					<tr>
+						<td class="coltop width35">{PHP.L.Parameter}</td>
+						<td class="coltop width60">{PHP.L.Value}</td>
+						<td class="coltop width5">{PHP.L.Reset}</td>
+					</tr>
+	<!-- BEGIN: ADMIN_CONFIG_ROW -->
+	<!-- BEGIN: ADMIN_CONFIG_FIELDSET_BEGIN -->
+					<tr>
+						<td class="group_begin" colspan="3">
+							<h4>{ADMIN_CONFIG_FIELDSET_TITLE}</h4>
+						</td>
+					</tr>
+	<!-- END: ADMIN_CONFIG_FIELDSET_BEGIN -->
+	<!-- BEGIN: ADMIN_CONFIG_ROW_OPTION -->
+					<tr>
+						<td>{ADMIN_CONFIG_ROW_CONFIG_TITLE}:</td>
+						<td>
+							{ADMIN_CONFIG_ROW_CONFIG}
+							<div class="adminconfigmore">{ADMIN_CONFIG_ROW_CONFIG_MORE}</div>
+						</td>
+						<td class="centerall">
+							<a href="{ADMIN_CONFIG_ROW_CONFIG_MORE_URL}" class="ajax button">
+								{PHP.L.Reset}
+							</a>
+						</td>
+					</tr>
+	<!-- END: ADMIN_CONFIG_ROW_OPTION -->
+	<!-- END: ADMIN_CONFIG_ROW -->
+
+				</table>
+
+<!-- END: CONFIG -->
+			<table class="cells">
 				<tr>
 					<td class="valid" colspan="2"><input type="submit" class="submit" value="{PHP.L.Update}" /></td>
 				</tr>
 			</table>
-			<p class="paging"><a href="{ADMIN_STRUCTURE_CONFIG_URL}" class="button">{PHP.L.Configuration}</a></p>
 			</form>
 		</div>
 		<!-- END: OPTIONS -->
@@ -105,9 +143,8 @@
 					<td class="centerall {ADMIN_STRUCTURE_ODDEVEN}">{ADMIN_STRUCTURE_TPLQUICK}</td>
 					<td class="centerall {ADMIN_STRUCTURE_ODDEVEN}">{ADMIN_STRUCTURE_COUNT}</td>
 					<td class="action {ADMIN_STRUCTURE_ODDEVEN}">
-						<a href="{ADMIN_STRUCTURE_CONFIG_URL}" title="{PHP.L.Config}" class="button">{PHP.L.short_config}</a>
+						<a title="{PHP.L.Options}" href="{ADMIN_STRUCTURE_OPTIONS_URL}" class="ajax button">{PHP.L.short_config}</a>
 						<!-- IF {ADMIN_STRUCTURE_RIGHTS_URL} --><a title="{PHP.L.Rights}" href="{ADMIN_STRUCTURE_RIGHTS_URL}" class="button">{PHP.L.short_rights}</a><!-- ENDIF -->
-						<a title="{PHP.L.Options}" href="{ADMIN_STRUCTURE_OPTIONS_URL}" class="ajax button">{PHP.L.short_options}</a>
 						<!-- IF {PHP.dozvil} --><a title="{PHP.L.Delete}" href="{ADMIN_STRUCTURE_UPDATE_DEL_URL}" class="confirmLink button">{PHP.L.short_delete}</a><!-- ENDIF -->
 						<a href="{ADMIN_STRUCTURE_JUMPTO_URL}" title="{PHP.L.Pages}" class="button special">{PHP.L.short_open}</a> </td>
 				</tr>

@@ -3,18 +3,20 @@
 CKEDITOR.editorConfig = function( config )
 {
     config.toolbar = 'Full';
-	config.extraPlugins = 'more';
+	config.extraPlugins = 'more,oembed';
+
+	config.allowedContent = true; // disable ACF
 
 	config.toolbar_Full =
 	[
-		['Source','-','Templates'],
+		['Source'],
 		['Cut','Copy','Paste','PasteText','PasteFromWord','-','Print', 'SpellChecker', 'Scayt'],
 		['Undo','Redo','-','Find','Replace','-','SelectAll','RemoveFormat'],
-		['Image','Flash','Table','HorizontalRule','Smiley','SpecialChar','PageBreak','Iframe'],
+		['Image','oembed','Table','HorizontalRule','Smiley','SpecialChar','PageBreak'],
 		['Maximize', 'ShowBlocks','-','About'],
 		'/',
 		['Bold','Italic','Underline','Strike','-','Subscript','Superscript'],
-		['NumberedList','BulletedList','-','Outdent','Indent','Blockquote','CreateDiv'],
+		['NumberedList','BulletedList','-','Outdent','Indent','Blockquote'],
 		['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'],
 		['Link','Unlink','Anchor','More'],
 		['Styles','Format'],

@@ -44,8 +44,15 @@ if ($id > 0)
 // Check if comments are enabled for specific category/item
 cot_block(!empty($area) && !empty($item) && cot_comments_enabled($area, $cat, $item));
 
-$url_area = $_SESSION['cot_com_back'][$area][$cat][$item][0];
-$url_params = $_SESSION['cot_com_back'][$area][$cat][$item][1];
+$cot_com_back = cot_import('cb', 'P', 'TXT');
+if(!empty($cot_com_back))
+{
+    $cot_com_back = unserialize(base64_decode($cot_com_back));
+}else{
+    $cot_com_back = $_SESSION['cot_com_back'][$area][$cat][$item];
+}
+$url_area = $cot_com_back[0];
+$url_params = $cot_com_back[1];
 cot_block(!empty($url_area));
 
 // Try to fetch $force_admin from session
@@ -95,6 +102,16 @@ if ($m == 'edit' && $id > 0)
 
 			cot_extrafield_movefiles();
 
+            if($cache && $row["com_area"] == 'page')
+            {
+                if ($cfg['cache_page'])
+                {
+                    $cache->page->clear('page/' . str_replace('.', '/', $structure['page'][$url_params['c']]['path']));
+
+                }
+                if ($cfg['cache_index']) $cache->page->clear('index');
+            }
+
 			if ($cfg['plugin']['comments']['mail'])
 			{
 				$sql2 = $db->query("SELECT * FROM $db_users WHERE user_maingrp=5");
@@ -139,6 +156,7 @@ if ($m == 'edit' && $id > 0)
 	$usr['allow_write'] = ($usr['isadmin'] || $usr['isowner']);
 	cot_block($usr['allow_write']);
 
+    $editor = ($cfg['plugin']['comments']['markup']) ? 'input_textarea_minieditor' : '';
 	$t->assign(array(
 		'COMMENTS_FORM_POST' => cot_url('plug', 'e=comments&m=edit&a=update&area=' . $area . '&cat=' . $cat . '&item=' . $com['com_code'] . '&id=' . $com['com_id']),
 		'COMMENTS_POSTER_TITLE' => $L['Poster'],
@@ -149,7 +167,7 @@ if ($m == 'edit' && $id > 0)
 		'COMMENTS_DATE' => cot_date('datetime_medium', $com['com_date']),
 		'COMMENTS_DATE_STAMP' => $com['com_date'],
 		'COMMENTS_FORM_UPDATE_BUTTON' => $L['Update'],
-		'COMMENTS_FORM_TEXT' => cot_textarea('comtext', $com['com_text'], 8, 64, '', 'input_textarea_minieditor')
+		'COMMENTS_FORM_TEXT' => cot_textarea('comtext', $com['com_text'], 8, 64, '', $editor)
 	));
 
 	// Extra fields
@@ -222,6 +240,16 @@ if ($a == 'send' && $usr['auth_write'])
 		$sql = $db->insert($db_com, $comarray);
 		$id = $db->lastInsertId();
 
+        if($cache && $area == 'page'){
+            if ($cfg['cache_page'])
+            {
+                $cache->page->clear('page/' . str_replace('.', '/', $structure['page'][$url_params['c']]['path']));
+
+            }
+            if ($cfg['cache_index']) $cache->page->clear('index');
+        }
+        $cfg['cache_page'] = $cfg['cache_index'] = false;
+
 		cot_extrafield_movefiles();
 
 		$_SESSION['cot_comments_edit'][$id] = $sys['now'];
@@ -253,6 +281,12 @@ if ($a == 'send' && $usr['auth_write'])
 
 		cot_redirect(cot_url($url_area, $url_params, '#c' . $id, true));
 	}
+    if($usr['id'] == 0 && $area == 'page'){
+        if ($cfg['cache_page'])
+        {
+            $cache->page->clear('page/' . str_replace('.', '/', $structure['page'][$url_params['c']]['path']));
+        }
+    }
 	cot_redirect(cot_url($url_area, $url_params, '#comments', true));
 }
 elseif ($a == 'delete' && $usr['isadmin'])
@@ -269,6 +303,16 @@ elseif ($a == 'delete' && $usr['isadmin'])
 		{
 			cot_extrafield_unlinkfiles($row['com_' . $exfld['field_name']], $exfld);
 		}
+
+        if($cache && $row['com_area'] == 'page')
+        {
+            if ($cfg['cache_page'])
+            {
+                $cache->page->clear('page/' . str_replace('.', '/', $structure['page'][$url_params['c']]['path']));
+
+            }
+            if ($cfg['cache_index']) $cache->page->clear('index');
+        }
 
 		/* == Hook == */
 		foreach (cot_getextplugins('comments.delete') as $pl)
@@ -288,4 +332,3 @@ elseif ($a == 'enable' && $usr['isadmin'])
 }
 
 cot_display_messages($t);
-?>

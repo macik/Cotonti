@@ -34,5 +34,3 @@ if ($cfg['plugin']['tags']['forums'] && cot_auth('plug', 'tags', 'W'))
 		}
 	}
 }
-
-?>

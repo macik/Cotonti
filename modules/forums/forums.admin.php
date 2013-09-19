@@ -27,6 +27,7 @@ $adminpath[] = array(cot_url('admin', 'm=extensions'), $L['Extensions']);
 $adminpath[] = array(cot_url('admin', 'm=extensions&a=details&mod='.$m), $cot_modules[$m]['title']);
 $adminpath[] = array(cot_url('admin', 'm='.$m), $L['Administration']);
 $adminhelp = $L['adm_help_forums'];
+$adminsubtitle = $L['Forums'];
 
 /* === Hook  === */
 foreach (cot_getextplugins('forums.admin.first') as $pl)
@@ -70,5 +71,3 @@ foreach (cot_getextplugins('forums.admin.tags') as $pl)
 
 $t->parse('MAIN');
 $adminmain = $t->text('MAIN');
-
-?>

@@ -31,7 +31,7 @@ $sys['parser'] = empty($parser) ? $cfg['parser'] : $parser;
 $pn_c1 = empty($c1) ? '' : '&c1=' . $c1;
 $pn_c2 = empty($c2) ? '' : '&c2=' . $c2;
 
-if (!$usr['isadmin'] || $userid=='')
+if (!$usr['isadmin'] || $userid === null)
 {
 	$userid = $usr['id'];
 }
@@ -43,7 +43,8 @@ else
 $files_count = 0;
 $folders_count = 0;
 $standalone = FALSE;
-$user_info = cot_userinfo($userid);
+$uid = ($userid > 0) ? $userid : $usr['id'];
+$user_info = cot_userinfo($uid);
 
 $pfs_base_href = $sys['abs_url'];
 $pfs_dir_user = cot_pfs_path($userid);
@@ -374,8 +375,12 @@ else
 	$iki=0;
 	$subfiles_count_on_page=0;
 
+	/* === Hook - Part1 : Set === */
+	$extp = cot_getextplugins('pfs.rowcat.loop');
+	/* ===== */
+
 	$sql_pfs_folders = $db->query("SELECT * FROM $db_pfs_folders WHERE pff_userid=$userid ORDER BY pff_isgallery ASC, pff_title ASC LIMIT $df, ".$cfg['pfs']['maxpfsperpage']);
-	while ($row_pff = $sql_pfs_folders->fetch())
+	foreach ($sql_pfs_folders->fetchAll() as $row_pff)
 	{
 		$pff_id = $row_pff['pff_id'];
 		$pff_title = $row_pff['pff_title'];
@@ -405,6 +410,13 @@ else
 			'PFF_ROW_DESC' => cot_cutstring($pff_desc,32)
 		));
 
+		/* === Hook - Part2 : Include === */
+		foreach ($extp as $pl)
+		{
+			include $pl;
+		}
+		/* ===== */
+
 		$t->parse('MAIN.PFF_ROW');
 
 		$iki++;
@@ -414,12 +426,23 @@ else
 
 }
 
+/* === Hook === */
+foreach (cot_getextplugins('pfs.list.query') as $pl)
+{
+	include $pl;
+}
+/* ===== */
+
 $files_count = $sql_pfs_files->rowCount();
 $movebox = (empty($f)) ? cot_selectbox_folders($userid,"/","") : cot_selectbox_folders($userid,"$f","");
 $th_colortext = array(hexdec(mb_substr($cfg['pfs']['th_colortext'],0,2)), hexdec(mb_substr($cfg['pfs']['th_colortext'],2,2)), hexdec(mb_substr($cfg['pfs']['th_colortext'],4,2)));
 $th_colorbg = array(hexdec(mb_substr($cfg['pfs']['th_colorbg'],0,2)), hexdec(mb_substr($cfg['pfs']['th_colorbg'],2,2)), hexdec(mb_substr($cfg['pfs']['th_colorbg'],4,2)));
 
 $iji=0;
+
+/* === Hook - Part1 : Set === */
+$extp = cot_getextplugins('pfs.row.loop');
+/* ===== */
 
 foreach ($sql_pfs->fetchAll() as $row)
 {
@@ -482,6 +505,13 @@ foreach ($sql_pfs->fetchAll() as $row)
 		'PFS_ROW_COUNT' => $row['pfs_count'],
 		'PFS_ROW_INSERT' => $standalone ? $add_thumbnail.$add_image.$add_file : ''
 	));
+
+	/* === Hook - Part2 : Include === */
+	foreach ($extp as $pl)
+	{
+		include $pl;
+	}
+	/* ===== */
 
 	$t->parse('MAIN.PFS_ROW');
 
@@ -673,5 +703,3 @@ if(!$standalone)
 {
 	require_once $cfg['system_dir'] . '/footer.php';
 }
-
-?>

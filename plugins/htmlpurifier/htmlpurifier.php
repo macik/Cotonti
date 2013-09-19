@@ -78,5 +78,3 @@ function htmlpurifier_filter($value, $name)
 }
 
 $cot_import_filters['HTM'][] = 'htmlpurifier_filter';
-
-?>

@@ -29,12 +29,13 @@ else
 }
 
 if ($userid!=$usr['id'])
-{ 
+{
 	cot_block($usr['isadmin']);
 }
 
 $standalone = FALSE;
-$user_info = cot_userinfo($userid);
+$uid = ($userid > 0) ? $userid : $usr['id'];
+$user_info = cot_userinfo($uid);
 $maingroup = ($userid==0) ? 5 : $user_info['user_maingrp'];
 
 $pfs_dir_user = cot_pfs_path($userid);
@@ -88,7 +89,7 @@ if ($row = $sql_pfs->fetch())
 	$title[]= htmlspecialchars($pff_title);
 }
 else
-{ 
+{
 	cot_die();
 }
 
@@ -165,5 +166,3 @@ if (!$standalone)
 {
 	require_once $cfg['system_dir'] . '/footer.php';
 }
-
-?>

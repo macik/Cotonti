@@ -46,5 +46,3 @@ if ($sys['parser'] == 'html')
 		{$winclose}
 	}';
 }
-
-?>

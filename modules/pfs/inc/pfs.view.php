@@ -74,5 +74,3 @@ $t->assign(array(
 
 $t->parse('MAIN');
 $t->out('MAIN');
-
-?>

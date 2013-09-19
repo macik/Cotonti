@@ -3,7 +3,7 @@
  * Russian Language File for Banlist
  *
  * @package Userimages
- * @version 
+ * @version
  * @author Cotonti Team
  * @copyright Copyright (c) Cotonti Team 2008-2013
  * @license BSD
@@ -12,7 +12,7 @@
 defined('COT_CODE') or die('Wrong URL.');
 
 $L['userimages_title'] = 'Пользовательские изображения';
-$L['info_desc'] = 'Поддержка Аватаров, фото и изображений-подписей для пользователей';
+$L['info_desc'] = 'Поддержка аватаров, фото и изображений-подписей для пользователей';
 
 $L['userimages_width'] = 'Ширина';
 $L['userimages_height'] = 'Высота';
@@ -33,5 +33,3 @@ $L['userimages_sigotvalid'] = 'Эта подпись не является де�
 $L['userimages_sigupload'] = 'Закачать изображение подписи';
 
 $L['userimages_help'] = '';
-
-?>

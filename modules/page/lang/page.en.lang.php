@@ -15,15 +15,20 @@ defined('COT_CODE') or die('Wrong URL.');
  * Module Config
  */
 
-$L['cfg_autovalidate'] = array('Autovalidate page', 'Autovalidate page if poster has admin rights for page category');
-$L['cfg_count_admin'] = array('Count Administrators\' hits', '');
-$L['cfg_maxlistsperpage'] = array('Max. lists per page', ' ');
-$L['cfg_order'] = array('Sorting column');
-$L['cfg_title_page'] = array('Page title tag format', 'Options: {TITLE}, {CATEGORY}');
-$L['cfg_way'] = array('Sorting direction');
-$L['cfg_truncatetext'] = array('Set truncated page text length in list', 'Zero to disable this feature');
-$L['cfg_allowemptytext'] = array('Allow empty page text');
-$L['cfg_keywords'] = array('Keywords');
+$L['cfg_autovalidate'] = 'Autovalidate page';
+$L['cfg_autovalidate_hint'] = 'Autovalidate page if poster has admin rights for page category';
+$L['cfg_count_admin'] = 'Count Administrators\' hits';
+$L['cfg_count_admin_hint'] = '';
+$L['cfg_maxlistsperpage'] = 'Max. lists per page';
+$L['cfg_maxlistsperpage_hint'] = '';
+$L['cfg_order'] = 'Sorting column';
+$L['cfg_title_page'] = 'Page title tag format';
+$L['cfg_title_page_hint'] = 'Options: {TITLE}, {CATEGORY}';
+$L['cfg_way'] = 'Sorting direction';
+$L['cfg_truncatetext'] = 'Set truncated page text length in list';
+$L['cfg_truncatetext_hint'] = 'Zero to disable this feature';
+$L['cfg_allowemptytext'] = 'Allow empty page text';
+$L['cfg_keywords'] = 'Keywords';
 
 $L['info_desc'] = 'Enables website content through pages and page categories';
 
@@ -33,6 +38,8 @@ $L['info_desc'] = 'Enables website content through pages and page categories';
 
 $L['cfg_order_params'] = array(); // Redefined in cot_page_config_order()
 $L['cfg_way_params'] = array($L['Ascending'], $L['Descending']);
+$L['cfg_metatitle'] = 'Meta title';
+$L['cfg_metadesc'] = 'Meta description';
 
 /**
  * Admin Page Section
@@ -57,15 +64,19 @@ $L['adm_filesize'] = 'File size';
  */
 
 $L['page_addtitle'] = 'Submit new page';
-$L['page_addsubtitle'] = 'Fill out all required fields and hit "Sumbit" to continue';
+$L['page_addsubtitle'] = 'Fill out all required fields and submit the form to continue';
 $L['page_edittitle'] = 'Page properties';
 $L['page_editsubtitle'] = 'Edit all required fields and hit "Sumbit" to continue';
 
 $L['page_aliascharacters'] = 'Characters \'+\', \'/\', \'?\', \'%\', \'#\', \'&\' are not allowed in aliases';
 $L['page_catmissing'] = 'The category code is missing';
+$L['page_clone'] = 'Clone page';
 $L['page_confirm_delete'] = 'Do you really want to delete this page?';
 $L['page_confirm_validate'] = 'Do you want to validate this page?';
 $L['page_confirm_unvalidate'] = 'Do you really want to put this page back to the validation queue?';
+$L['page_date_now'] = 'Update page date to current';
+$L['page_drafts'] = 'Drafts';
+$L['page_drafts_desc'] = 'Pages saved in your drafts';
 $L['page_notavailable'] = 'This page will be published in ';
 $L['page_textmissing'] = 'Page text must not be empty';
 $L['page_titletooshort'] = 'The title is too short or missing';
@@ -107,7 +118,6 @@ $L['page_status_expired'] = 'Expired';
 $L['page_linesperpage'] = 'Lines per page';
 $L['page_linesinthissection'] = 'Lines in this section';
 
-$Ls['pages'] = array('pages', 'page');
-$Ls['unvalidated_pages'] = array('unvalidated pages', 'unvalidated page');
-
-?>
+$Ls['pages'] = "pages,page";
+$Ls['unvalidated_pages'] = "unvalidated pages,unvalidated page";
+$Ls['pages_in_drafts'] = "pages in drafts,page in drafts";

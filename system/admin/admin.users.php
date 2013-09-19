@@ -20,6 +20,7 @@ require_once cot_incfile('uploads');
 $t = new XTemplate(cot_tplfile('admin.users', 'core'));
 
 $adminpath[] = array(cot_url('admin', 'm=users'), $L['Users']);
+$adminsubtitle = $L['Users'];
 
 $g = cot_import('g', 'G', 'INT');
 
@@ -54,27 +55,32 @@ if($n == 'add')
 	}
 	/* ===== */
 
-	if ($rgroups['grp_name'] && $rgroups['grp_title'])
+	cot_check(empty($rgroups['grp_name']), 'adm_groups_name_empty', 'rname');
+	cot_check(empty($rgroups['grp_title']), 'adm_groups_title_empty', 'rtitle');
+
+	if (!cot_error_found())
 	{
 		$db->insert($db_groups, $rgroups);
+
+		$grp_id = $db->lastInsertId();
+
+		/* === Hook === */
+		foreach (cot_getextplugins('admin.users.add') as $pl)
+		{
+			include $pl;
+		}
+		/* ===== */
+
+		if (!$rgroups['grp_skiprights'])
+		{
+			cot_auth_add_group($grp_id, $rcopyrightsfrom);
+		}
+
+		$cache && $cache->db->remove('cot_groups', 'system');
+
+		cot_message('Added');
 	}
-	$grp_id = $db->lastInsertId();
-
-	/* === Hook === */
-	foreach (cot_getextplugins('admin.users.add') as $pl)
-	{
-		include $pl;
-	}
-	/* ===== */
-
-	if (!$rgroups['grp_skiprights'])
-	{
-		cot_auth_add_group($grp_id, $rcopyrightsfrom);
-	}
-
-	$cache && $cache->db->remove('cot_groups', 'system');
-
-	cot_message('Added');
+	cot_redirect(cot_url('admin', 'm=users', '', true));
 }
 elseif($n == 'edit')
 {
@@ -97,10 +103,13 @@ elseif($n == 'edit')
 		}
 		/* ===== */
 
-		if ($rgroups['grp_name'] && $rgroups['grp_title'])
+		cot_check(empty($rgroups['grp_name']), 'adm_groups_name_empty', 'rname');
+		cot_check(empty($rgroups['grp_title']), 'adm_groups_title_empty', 'rtitle');
+
+		if (!cot_error_found())
 		{
 			$db->update($db_groups, $rgroups, "grp_id=$g");
-			
+
 			$was_rightless = $db->query("SELECT grp_skiprights FROM $db_groups WHERE grp_id = $g")->fetchColumn();
 			if ($was_rightless && !$rgroups['grp_skiprights'])
 			{
@@ -112,11 +121,11 @@ elseif($n == 'edit')
 				// Remove rights
 				cot_auth_remove_group($g);
 			}
+
+			$cache && $cache->db->remove('cot_groups', 'system');
+
+			cot_message('Updated');
 		}
-
-		$cache && $cache->db->remove('cot_groups', 'system');
-
-		cot_message('Updated');
 	}
 	elseif($a == 'delete' && $g > 5)
 	{
@@ -198,10 +207,13 @@ if(!isset($showdefault) || $showdefault == true)
 		foreach ($sql->fetchAll() as $row)
 		{
 			$members[$row['grp_id']] = (empty($members[$row['grp_id']])) ? '0' : $members[$row['grp_id']];
+			$grp_title = isset($L['users_grp_' . $row['grp_id'] . '_title']) ? $L['users_grp_' . $row['grp_id'] . '_title'] : htmlspecialchars($row['grp_title']);
+			$grp_desc = isset($L['users_grp_' . $row['grp_id'] . '_desc']) ? $L['users_grp_' . $row['grp_id'] . '_desc'] : htmlspecialchars($row['grp_desc']);
 			$t->assign(array(
 				'ADMIN_USERS_ROW_GRP_TITLE_URL' => cot_url('admin', 'm=users&n=edit&g='.$row['grp_id']),
 				'ADMIN_USERS_ROW_GRP_NAME' => htmlspecialchars($row['grp_name']),
-				'ADMIN_USERS_ROW_GRP_TITLE' => htmlspecialchars($row['grp_title']),
+				'ADMIN_USERS_ROW_GRP_TITLE' => $grp_title,
+				'ADMIN_USERS_ROW_GRP_DESC' => $grp_desc,
 				'ADMIN_USERS_ROW_GRP_ID' => $row['grp_id'],
 				'ADMIN_USERS_ROW_GRP_COUNT_MEMBERS' => $members[$row['grp_id']],
 				'ADMIN_USERS_ROW_GRP_DISABLED' => $cot_yesno[!$row['grp_disabled']],
@@ -243,7 +255,7 @@ if(!isset($showdefault) || $showdefault == true)
 }
 
 $t->assign(array(
-	'ADMIN_USERS_URL' => cot_url('admin', 'm=config&n=edit&o=core&p=users'),
+	'ADMIN_USERS_URL' => cot_url('admin', 'm=config&n=edit&o=module&p=users'),
 	'ADMIN_USERS_EXTRAFIELDS_URL' => cot_url('admin', 'm=extrafields&n='.$db_users)
 ));
 
@@ -259,5 +271,3 @@ foreach (cot_getextplugins('admin.users.tags') as $pl)
 
 $t->parse('MAIN');
 $adminmain = $t->text('MAIN');
-
-?>

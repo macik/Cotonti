@@ -26,5 +26,3 @@ if ($cfg['jquery'])
 		cot_rc_add_file($cfg['plugins_dir'] . '/ratings/tpl/ratings.css');
 	}
 }
-
-?>

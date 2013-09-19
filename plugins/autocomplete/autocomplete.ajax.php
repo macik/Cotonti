@@ -32,5 +32,3 @@ if (!empty($q))
 	cot_sendheaders();
 }
 echo $userlist;
-
-?>

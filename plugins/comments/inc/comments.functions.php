@@ -49,7 +49,19 @@ function cot_comments_count($ext_name, $code, $row = array())
 	}
 	else
 	{
-		$sql = $db->query("SELECT COUNT(*) FROM $db_com WHERE com_area = ? AND com_code = ?", array($ext_name, $code));
+		$comments_join_columns = '';
+		$comments_join_tables = '';
+		$comments_join_where = '';
+		/* == Hook == */
+		foreach (cot_getextplugins('comments.count.query') as $pl)
+		{
+			include $pl;
+		}
+		/* ===== */
+		$sql = $db->query("SELECT COUNT(*) $comments_join_columns
+			FROM $db_com $comments_join_tables
+			WHERE com_area = ? AND com_code = ? $comments_join_where",
+			array($ext_name, $code));
 		if ($sql->rowCount() == 1)
 		{
 			$cnt = (int) $sql->fetchColumn();
@@ -73,7 +85,7 @@ function cot_comments_count($ext_name, $code, $row = array())
  */
 function cot_comments_display($ext_name, $code, $cat = '', $force_admin = false)
 {
-	global $db, $db_com, $db_users, $cfg, $usr, $L, $sys, $R, $env, $pg, $cot_extrafields;
+	global $db, $db_com, $db_users, $cfg, $usr, $L, $sys, $R, $env, $pg, $cot_extrafields, $cache, $structure;
 
 	// Check permissions and enablement
 	list($auth_read, $auth_write, $auth_admin) = cot_auth('plug', 'comments');
@@ -104,7 +116,8 @@ function cot_comments_display($ext_name, $code, $cat = '', $force_admin = false)
 		unset($link_params['rwr'], $link_params['e']);
 	}
 
-	$_SESSION['cot_com_back'][$ext_name][$cat][$code] = array($link_area, $link_params);
+    $cot_com_back = array($link_area, $link_params);
+	$_SESSION['cot_com_back'][$ext_name][$cat][$code] = $cot_com_back;
 
 	$d_var = 'dcm';
 	list($pg, $d, $durl) = cot_import_pagenav($d_var, $cfg['plugin']['comments']['maxcommentsperpage']);
@@ -123,13 +136,13 @@ function cot_comments_display($ext_name, $code, $cat = '', $force_admin = false)
 		include $pl;
 	}
 	/* ===== */
-
+    $editor = ($cfg['plugin']['comments']['markup']) ? 'input_textarea_minieditor' : '';
 	$t->assign(array(
 		'COMMENTS_CODE' => $code,
 		'COMMENTS_FORM_SEND' => cot_url('plug', "e=comments&a=send&area=$ext_name&cat=$cat&item=$code"),
 		'COMMENTS_FORM_AUTHOR' => ($usr['id'] > 0) ? $usr['name'] : cot_inputbox('text', 'rname'),
 		'COMMENTS_FORM_AUTHORID' => $usr['id'],
-		'COMMENTS_FORM_TEXT' => $auth_write && $enabled ? cot_textarea('rtext', $rtext, 10, 120, '', 'input_textarea_minieditor')
+		'COMMENTS_FORM_TEXT' => $auth_write && $enabled ? cot_textarea('rtext', $rtext, 7, 120, '', $editor).cot_inputbox('hidden', 'cb', base64_encode(serialize($cot_com_back)))
 			: '',
 		'COMMENTS_DISPLAY' => $cfg['plugin']['comments']['expand_comments'] ? '' : 'none'
 	));
@@ -163,6 +176,15 @@ function cot_comments_display($ext_name, $code, $cat = '', $force_admin = false)
 		/* ===== */
 
 		$usr['id'] == 0 && $t->parse('COMMENTS.COMMENTS_NEWCOMMENT.GUEST');
+        if ($usr['id'] == 0 && cot_check_messages()){
+            if($ext_name == 'page'){
+                if ($cfg['cache_page'])
+                {
+                    $cache->page->clear('page/' . str_replace('.', '/', $structure['page'][$cat]['path']));
+                    $cfg['cache_page'] = false;
+                }
+            }
+        }
 		cot_display_messages($t, 'COMMENTS.COMMENTS_NEWCOMMENT');
 		$t->assign('COMMENTS_FORM_HINT', $com_hint);
 		$t->parse('COMMENTS.COMMENTS_NEWCOMMENT');
@@ -210,8 +232,8 @@ function cot_comments_display($ext_name, $code, $cat = '', $force_admin = false)
 
 			$time_limit = ($sys['now'] < ($row['com_date'] + $cfg['plugin']['comments']['time'] * 60)) ? TRUE
 				: FALSE;
-			$usr['isowner_com'] = $time_limit && ($usr['id'] > 0 && $row['com_authorid'] == $usr['id']
-				|| $usr['id'] == 0 && $usr['ip'] == $row['com_authorip']);
+            $usr['isowner_com'] = $time_limit && ( ($usr['id'] > 0 && $row['com_authorid'] == $usr['id'] )
+                || ($usr['id'] == 0 && !empty($_SESSION['cot_comments_edit'][$row['com_id']]) && $usr['ip'] == $row['com_authorip']) );
 			$com_gup = $sys['now'] - ($row['com_date'] + $cfg['plugin']['comments']['time'] * 60);
 			$allowed_time = ($usr['isowner_com'] && !$usr['isadmin']) ? ' - '
 				. cot_build_timegap($sys['now'] + $com_gup, $sys['now']) . $L['plu_comgup'] : '';
@@ -220,6 +242,9 @@ function cot_comments_display($ext_name, $code, $cat = '', $force_admin = false)
 					'allowed_time' => $allowed_time
 				)) : '';
 
+            if($row['com_area'] == 'page'){
+                if($usr['id'] == 0 && $usr['isowner_com'] && $cfg['cache_page']) $cfg['cache_page'] = $cfg['cache_index'] = false;
+            }
 			$t->assign(array(
 				'COMMENTS_ROW_ID' => $row['com_id'],
 				'COMMENTS_ROW_ORDER' => $cfg['plugin']['comments']['order'] == 'Recent' ? $totalitems - $i + 1 : $i,
@@ -310,14 +335,23 @@ function cot_comments_display($ext_name, $code, $cat = '', $force_admin = false)
 function cot_comments_enabled($ext_name, $cat = '', $item = '')
 {
 	global $cfg, $cot_modules;
-	if (isset($cfg[$ext_name][$cat]['enable_comments'])
+	if (isset($cfg[$ext_name]['cat_'.$cat]['enable_comments'])
 		|| isset($cfg[$ext_name]['enable_comments'])
-		|| isset($cfg['plugin'][$ext_name]['enable_comments']))
+		|| isset($cfg['plugin'][$ext_name]['enable_comments'])
+		|| isset($cfg[$ext_name]['cat___default']['enable_comments']))
 	{
 		if (isset($cot_modules[$ext_name]))
 		{
-			return (bool) (isset($cfg[$ext_name][$cat]['enable_comments']) ? $cfg[$ext_name][$cat]['enable_comments']
-				: $cfg[$ext_name]['enable_comments']);
+			if (isset($cfg[$ext_name]['cat_'.$cat]['enable_comments']))
+			{
+				return $cfg[$ext_name]['cat_'.$cat]['enable_comments'];
+			}
+			else
+			{
+				return isset($cfg[$ext_name]['cat___default']['enable_comments'])
+					? $cfg[$ext_name]['cat___default']['enable_comments']
+					: $cfg[$ext_name]['enable_comments'];
+			}
 		}
 		else
 		{
@@ -385,5 +419,3 @@ function cot_comments_remove($area, $code)
 
 	$db->delete($db_com, 'com_area = ? AND com_code = ?', array($area, $code));
 }
-
-?>

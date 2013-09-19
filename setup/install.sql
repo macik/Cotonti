@@ -1,5 +1,5 @@
 /**
- * Version: 0.9.12
+ * Version: 0.9.14
  */
 
 DROP TABLE IF EXISTS `cot_auth`;
@@ -42,7 +42,7 @@ CREATE TABLE `cot_cache` (
   `c_realm` varchar(64) collate utf8_unicode_ci NOT NULL default 'cot',
   `c_expire` int NOT NULL default '0',
   `c_auto` tinyint NOT NULL default '1',
-  `c_value` text collate utf8_unicode_ci,
+  `c_value` MEDIUMTEXT collate utf8_unicode_ci,
   PRIMARY KEY  (`c_name`, `c_realm`),
   KEY (`c_realm`),
   KEY (`c_name`),
@@ -77,7 +77,7 @@ CREATE TABLE `cot_config` (
 
 INSERT INTO `cot_config` (`config_owner`, `config_cat`, `config_order`, `config_name`, `config_type`, `config_value`, `config_default`, `config_variants`, `config_text`) VALUES
 ('core','locale','01','forcedefaultlang',3,'0','0','',''),
-('core','locale','11','defaulttimezone',1,'0','0','',''),
+('core','locale','11','defaulttimezone',4,'0','0','cot_config_timezones()',''),
 ('core','main','01','adminemail',1,'admin@mysite.com','admin@mysite.com','',''),
 ('core','main','02','clustermode',3,'0','0','',''),
 ('core','main','03','hostip',1,'999.999.999.999','999.999.999.999','',''),
@@ -85,6 +85,7 @@ INSERT INTO `cot_config` (`config_owner`, `config_cat`, `config_order`, `config_
 ('core','main','05','maxrowsperpage',1,'15','15','',''),
 ('core','main','06','easypagenav',3,'1','1','',''),
 ('core','main','07','confirmlinks',3,'1','1','',''),
+('core','main','91','default_show_installed',3,'0','0','',''),
 ('core','menus','01','topline',0,'','','',''),
 ('core','menus','02','banner',0,'','','',''),
 ('core','menus','03','bottomline',0,'','','',''),
@@ -143,8 +144,7 @@ INSERT INTO `cot_config` (`config_owner`, `config_cat`, `config_order`, `config_
 ('core','title','18','title_header',1,'{SUBTITLE} - {MAINTITLE}','{SUBTITLE} - {MAINTITLE}','',''),
 ('core','title','19','title_header_index',1,'{MAINTITLE} - {DESCRIPTION}','{MAINTITLE} - {DESCRIPTION}','',''),
 ('core','title','98','subject_mail',1,'{SITE_TITLE} - {MAIL_SUBJECT}','{SITE_TITLE} - {MAIL_SUBJECT}','',''),
-('core','title','99','body_mail',0,'{MAIL_BODY}\n\n{SITE_TITLE} - {SITE_URL}\n{SITE_DESCRIPTION}','{MAIL_BODY}\n\n{SITE_TITLE} - {SITE_URL}\n{SITE_DESCRIPTION}','',''),
-('core','version','01','revision',0,'','','','');
+('core','title','99','body_mail',0,'{MAIL_BODY}\n\n{SITE_TITLE} - {SITE_URL}\n{SITE_DESCRIPTION}','{MAIL_BODY}\n\n{SITE_TITLE} - {SITE_URL}\n{SITE_DESCRIPTION}','','');
 
 DROP TABLE IF EXISTS `cot_core`;
 CREATE TABLE `cot_core` (
@@ -263,7 +263,7 @@ CREATE TABLE `cot_updates` (
   PRIMARY KEY (`upd_param`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 INSERT INTO `cot_updates` (`upd_param`, `upd_value`) VALUES
-('revision', '0.9.12-01'),
+('revision', '0.9.14-03'),
 ('branch', 'siena');
 
 DROP TABLE IF EXISTS `cot_users`;
@@ -293,9 +293,14 @@ CREATE TABLE `cot_users` (
   `user_sid` char(64) collate utf8_unicode_ci NOT NULL default '',
   `user_sidtime` int NOT NULL default 0,
   `user_lostpass` char(32) collate utf8_unicode_ci NOT NULL default '',
-  `user_auth` text collate utf8_unicode_ci,
+  `user_auth` MEDIUMTEXT collate utf8_unicode_ci,
   `user_token` char(16) collate utf8_unicode_ci NOT NULL default '',
   PRIMARY KEY  (`user_id`),
   KEY `user_password` (`user_password`),
-  KEY `user_regdate` (`user_regdate`)
+  KEY `user_regdate` (`user_regdate`),
+  KEY `user_name` (`user_name`),
+  KEY `user_maingrp` (`user_maingrp`),
+  KEY `user_email` (`user_email`),
+  KEY `user_sid` (`user_sid`),
+  KEY `user_lostpass` (`user_lostpass`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

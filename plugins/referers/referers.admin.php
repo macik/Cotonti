@@ -24,6 +24,7 @@ $tt = new XTemplate(cot_tplfile('referers.admin', 'plug', true));
 $db_referers = (isset($db_referers)) ? $db_referers : $db_x . 'referers';
 require_once cot_langfile('referers', 'plug');
 $adminhelp = $L['adm_help_referers'];
+$adminsubtitle = $L['Referers'];
 
 list($pg, $d, $durl) = cot_import_pagenav('d', $cfg['maxrowsperpage']);
 
@@ -66,7 +67,7 @@ if($sql->rowCount() > 0)
 	{
 
 		$tt->assign('ADMIN_REFERERS_REFERER', htmlspecialchars($referer));
-		
+
 		foreach($url as $uri => $count)
 		{
 			$tt->assign(array(
@@ -113,5 +114,3 @@ foreach (cot_getextplugins('referers.admin.tags') as $pl)
 
 $tt->parse('MAIN');
 $plugin_body = $tt->text('MAIN');
-
-?>

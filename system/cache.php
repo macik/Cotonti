@@ -495,8 +495,8 @@ class Page_cache
 			{
 				$args[$key] = $val;
 			}
-			ksort($args);
 		}
+		ksort($args);
 		if (count($args) > 0)
 		{
 			$hashkey = serialize($args);
@@ -1232,15 +1232,15 @@ class Cache
 	 */
 	private function resync_bindings()
 	{
-		global $db, $db_cache_bindings;
+		// global $db, $db_cache_bindings;
 		$this->bindings = array();
-		$sql = $db->query("SELECT * FROM `$db_cache_bindings`");
-		while ($row = $sql->fetch())
-		{
-			$this->bindings[$row['c_event']][] = array('id' => $row['c_id'], 'realm' => $row['c_realm']);
-		}
-		$sql->closeCursor();
-		$this->db->store('cot_cache_bindings', $this->bindings, 'system');
+		// $sql = $db->query("SELECT * FROM `$db_cache_bindings`");
+		// while ($row = $sql->fetch())
+		// {
+		// 	$this->bindings[$row['c_event']][] = array('id' => $row['c_id'], 'realm' => $row['c_realm']);
+		// }
+		// $sql->closeCursor();
+		// $this->db->store('cot_cache_bindings', $this->bindings, 'system');
 	}
 
 	/**
@@ -1472,5 +1472,3 @@ class Cache
 		return $res;
 	}
 }
-
-?>

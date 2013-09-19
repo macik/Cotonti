@@ -141,8 +141,7 @@ foreach ($pm_sql->fetchAll() as $row)
 			: cot_rc_link(cot_url('pm', 'm=message&id='.$row['pm_id']), $R['pm_icon'], array('title' => $L['pm_read'], 'class'=>'ajax'));
 
 	$pm_data = cot_parse($row['pm_text'], $cfg['pm']['markup']);
-	$pm_desc = $pm_data;
-	$pm_desc .= (cot_string_truncate($pm_desc)) ? "..." : "";
+	$pm_desc = cot_string_truncate($pm_data , 100 , true, false, '...');
 
 	if ($f == 'sentbox')
 	{
@@ -168,7 +167,9 @@ foreach ($pm_sql->fetchAll() as $row)
 		'PM_ROW_ICON_STATUS' => $row['pm_icon_readstatus'],
 		'PM_ROW_ICON_STARRED' => $row['pm_icon_starred'],
 		'PM_ROW_ICON_DELETE' => cot_rc_link($url_delete, $R['pm_icon_trashcan'], array('title' => $L['Delete'], 'class'=>$cfg['pm']['turnajax'] ? 'ajax' : '')),
+		'PM_ROW_ICON_DELETE_CONFIRM' => cot_rc_link(cot_confirm_url($url_delete), $R['pm_icon_trashcan'], array('title' => $L['Delete'], 'class'=>$cfg['pm']['turnajax'] ? 'ajax' : '')),
 		'PM_ROW_DELETE_URL' => $url_delete,
+		'PM_ROW_DELETE_CONFIRM_URL' => cot_confirm_url($url_delete),
 		'PM_ROW_ICON_EDIT' => ($row['pm_tostate'] == 0) ? cot_rc_link($url_edit, $R['pm_icon_edit'], array('title' => $L['Edit'], 'class'=> $cfg['pm']['turnajax'] ? 'ajax' : '')) : '',
 		'PM_ROW_EDIT_URL' => ($row['pm_tostate'] == 0) ? $url_edit : '',
 		'PM_ROW_DESC' => $pm_desc,
@@ -241,5 +242,3 @@ $t->parse('MAIN');
 $t->out('MAIN');
 
 require_once $cfg['system_dir'] . '/footer.php';
-
-?>

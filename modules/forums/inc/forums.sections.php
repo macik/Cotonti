@@ -48,17 +48,17 @@ if (!$cot_sections_act)
 	$cache && $cache->db->store('cot_sections_act', $cot_sections_act, 'system', 7200);
 }
 
-$sql_forums = $db->query("SELECT * FROM $db_forum_stats WHERE 1 ORDER by fs_cat DESC");
+$sql_forums = $db->query("SELECT * FROM $db_forum_stats ORDER by fs_cat DESC");
 foreach ($sql_forums->fetchAll() as $row)
 {
-	if (!$cat_top[$row['fs_cat']]['fs_lt_id'])
+	if (!$row['fs_lt_id'] && count(explode('.', $structure['forums'][$row['fs_cat']]['rpath'])) > 1 && $structure['forums'][$row['fs_cat']]['count'] > 0)
 	{
 		cot_forums_sectionsetlast($row['fs_cat']);
 	}
 	$cat_top[$row['fs_cat']] = $row;
 	$cat_top[$row['fs_cat']]['topiccount'] = $cat_top[$row['fs_cat']]['fs_topiccount'];
 	$cat_top[$row['fs_cat']]['postcount'] = $cat_top[$row['fs_cat']]['fs_postcount'];
-	$cat_top[$row['fs_cat']]['viewcount'] = $cat_top[$row['fs_cat']]['fs_topiccount'];
+    $cat_top[$row['fs_cat']]['viewcount'] = $cat_top[$row['fs_cat']]['fs_viewcount'];
 }
 
 $fstlvl = array();
@@ -229,5 +229,3 @@ if ($cache && $usr['id'] === 0 && $cfg['cache_forums'])
 {
 	$cache->page->write();
 }
-
-?>

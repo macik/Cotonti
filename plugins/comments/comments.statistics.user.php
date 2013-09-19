@@ -25,5 +25,3 @@ $user_comments = $sql->fetchColumn();
 $t->assign(array(
 	'STATISTICS_USER_COMMENTS' => $user_comments
 ));
-
-?>

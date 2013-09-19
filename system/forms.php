@@ -36,9 +36,7 @@ function cot_checkbox($chosen, $name, $title = '', $attrs = '', $value = '1', $c
 	$chosen = cot_import_buffered($name, $chosen);
 	$checked = $chosen ? ' checked="checked"' : '';
 	$rc_name = preg_match('#^(\w+)\[(.*?)\]$#', $name, $mt) ? $mt[1] : $name;
-	$rc = empty($custom_rc)
-		? empty($R["input_checkbox_{$rc_name}"]) ? 'input_checkbox' : "input_checkbox_{$rc_name}"
-		: $custom_rc;
+	$rc = empty($R["input_checkbox_{$rc_name}"]) ? (empty($custom_rc) ? 'input_checkbox' : $custom_rc) : "input_checkbox_{$rc_name}";
 	return cot_rc($rc, array(
 		'value' => htmlspecialchars(cot_import_buffered($name, $value)),
 		'value_off' => $value_off,
@@ -64,10 +62,8 @@ function cot_inputbox($type, $name, $value = '', $attrs = '', $custom_rc = '')
 	global $R, $cfg;
 	$input_attrs = cot_rc_attr_string($attrs);
 	$rc_name = preg_match('#^(\w+)\[(.*?)\]$#', $name, $mt) ? $mt[1] : $name;
-	$rc = empty($custom_rc)
-		? (empty($R["input_{$type}_{$rc_name}"]) ? "input_$type" : "input_{$type}_{$rc_name}")
-		: $custom_rc;
-	if (!isset($R[$rc]))
+	$rc = empty($R["input_{$type}_{$rc_name}"]) ? (empty($custom_rc) ? "input_{$type}" : $custom_rc) : "input_{$type}_{$rc_name}";
+	if (!isset($R[$rc]) && empty($custom_rc))
 	{
 		$rc = 'input_default';
 	}
@@ -114,9 +110,7 @@ function cot_radiobox($chosen, $name, $values, $titles = array(), $attrs = '', $
 	$i = 0;
 	$result = '';
 	$rc_name = preg_match('#^(\w+)\[(.*?)\]$#', $name, $mt) ? $mt[1] : $name;
-	$rc = empty($custom_rc)
-		? empty($R["input_radio_{$rc_name}"]) ? 'input_radio' : "input_radio_{$rc_name}"
-		: $custom_rc;
+	$rc = empty($R["input_radio_{$rc_name}"]) ? (empty($custom_rc) ? 'input_radio' : $custom_rc) : "input_radio_{$rc_name}";
 	foreach ($values as $k => $x)
 	{
 		$checked = ($x == $chosen) ? ' checked="checked"' : '';
@@ -190,9 +184,9 @@ function cot_selectbox($chosen, $name, $values, $titles = array(), $add_empty = 
 			'title' => $title
 		));
 	}
-	$rc = empty($custom_rc)
-		? empty($R["input_select_{$rc_name}"]) ? 'input_select' : "input_select_{$rc_name}"
-		: $custom_rc;
+
+	$rc = empty($R["input_select_{$rc_name}"]) ? (empty($custom_rc) ? 'input_select' : $custom_rc) : "input_select_{$rc_name}";
+
 	$result .= cot_rc($rc, array(
 		'name' => $name,
 		'attrs' => $input_attrs,
@@ -254,6 +248,15 @@ function cot_selectbox_date($utime, $mode = 'long', $name = '', $max_year = 2030
 	if ($utime == 0)
 	{
 		list($s_year, $s_month, $s_day, $s_hour, $s_minute) = array(null, null, null, null, null);
+		$buffered = cot_import_buffered($name, null);
+		if (is_array($buffered))
+		{
+			$s_year   = $buffered['year'];
+			$s_month  = $buffered['month'];
+			$s_day    = $buffered['day'];
+			$s_hour   = $buffered['hour'] > 0 ? $buffered['hour'] : 1;
+			$s_minute = $buffered['minute'];
+		}
 	}
 	else
 	{
@@ -273,7 +276,7 @@ function cot_selectbox_date($utime, $mode = 'long', $name = '', $max_year = 2030
 	$months[11] = $L['November'];
 	$months[12] = $L['December'];
 
-	$year = cot_selectbox($s_year, $name.'[year]', range($min_year, $max_year));
+	$year = cot_selectbox($s_year, $name.'[year]', range($max_year, $min_year, -1));
 	$month = cot_selectbox($s_month, $name.'[month]', array_keys($months), array_values($months));
 	$day = cot_selectbox($s_day, $name.'[day]', range(1, 31));
 
@@ -381,7 +384,7 @@ function cot_selectbox_timezone($chosen, $name, $add_gmt = true, $dst = false, $
  */
 function cot_selectbox_structure($extension, $check, $name, $subcat = '', $hideprivate = true, $is_module = true)
 {
-	global $db, $db_structure, $usr, $structure, $L, $R;
+	global $structure;
 
 	$structure[$extension] = (is_array($structure[$extension])) ? $structure[$extension] : array();
 
@@ -389,11 +392,11 @@ function cot_selectbox_structure($extension, $check, $name, $subcat = '', $hidep
 	foreach ($structure[$extension] as $i => $x)
 	{
 		$display = ($hideprivate && $is_module) ? cot_auth($extension, $i, 'W') : true;
-		if ($display && !empty($subcat) && isset($structure[$extension][$subcat]) && !(empty($check)))
+		if ($display && !empty($subcat) && isset($structure[$extension][$subcat]))
 		{
 			$mtch = $structure[$extension][$subcat]['path'].".";
 			$mtchlen = mb_strlen($mtch);
-			$display = (mb_substr($x['path'], 0, $mtchlen) == $mtch || $i == $check) ? true : false;
+			$display = (mb_substr($x['path'], 0, $mtchlen) == $mtch || $i === $subcat);
 		}
 
 		if ((!$is_module || cot_auth($extension, $i, 'R')) && $i!='all' && $display)
@@ -419,13 +422,11 @@ function cot_selectbox_structure($extension, $check, $name, $subcat = '', $hidep
  */
 function cot_textarea($name, $value, $rows, $cols, $attrs = '', $custom_rc = '')
 {
-	global $cot_textarea_count, $R;
+	global $cot_textarea_count, $R, $cfg;
 	$cot_textarea_count++;
 	$input_attrs = cot_rc_attr_string($attrs);
 	$rc_name = preg_match('#^(\w+)\[(.*?)\]$#', $name, $mt) ? $mt[1] : $name;
-	$rc = empty($custom_rc)
-		? (empty($R["input_textarea_{$rc_name}"]) ? 'input_textarea' : "input_textarea_{$rc_name}")
-		: $custom_rc;
+	$rc = empty($R["input_textarea_{$rc_name}"]) ? (empty($custom_rc) ? 'input_textarea' : $custom_rc) : "input_textarea_{$rc_name}";
 	$error = $cfg['msg_separate'] ? cot_implode_messages($name, 'error') : '';
 	return cot_rc($rc, array(
 		'name' => $name,
@@ -478,9 +479,7 @@ function cot_checklistbox($chosen, $name, $values, $titles = array(), $attrs = '
 	}
 	$rc_name = preg_match('#^(\w+)\[(.*?)\]$#', $name, $mt) ? $mt[1] : $name;
 
-	$rc = empty($custom_rc)
-		? empty($R["input_check_{$rc_name}"]) ? 'input_check' : "input_check_{$rc_name}"
-		: $custom_rc;
+	$rc = empty($R["input_check_{$rc_name}"]) ? (empty($custom_rc) ? 'input_check' : $custom_rc) : "input_check_{$rc_name}";
 	foreach ($values as $k => $x)
 	{
 		$i++;
@@ -517,22 +516,18 @@ function cot_checklistbox($chosen, $name, $values, $titles = array(), $attrs = '
  */
 function cot_filebox($name, $value = '', $filepath = '', $delname ='', $attrs = '', $custom_rc = '')
 {
-	global $R, $cfg, $L;
+	global $R, $cfg;
 	$input_attrs = cot_rc_attr_string($attrs);
 	$rc_name = preg_match('#^(\w+)\[(.*?)\]$#', $name, $mt) ? $mt[1] : $name;
 
 	$custom_rc = explode('|', $custom_rc, 2);
 	if(empty($value))
 	{
-		$rc = empty($custom_rc[1])
-			? (empty($R["input_filebox_{$rc_name}_empty"]) ? "input_filebox_empty" : "input_filebox_{$rc_name}_empty")
-			: $custom_rc[1];
+		$rc = empty($R["input_filebox_{$rc_name}_empty"]) ? (empty($custom_rc[1]) ? 'input_filebox_empty' : $custom_rc[1]) : "input_filebox_{$rc_name}_empty";
 	}
 	else
 	{
-		$rc = empty($custom_rc[0])
-			? (empty($R["input_filebox_{$rc_name}"]) ? "input_filebox" : "input_filebox_{$rc_name}")
-			: $custom_rc[0];
+		$rc = empty($R["input_filebox_{$rc_name}"]) ? (empty($custom_rc[0]) ? 'input_filebox' : $custom_rc[0]) : "input_filebox_{$rc_name}";
 	}
 
 	$filepath = empty($filepath) ? $value : $filepath;
@@ -547,5 +542,3 @@ function cot_filebox($name, $value = '', $filepath = '', $delname ='', $attrs = 
 		'error' => $error
 	));
 }
-
-?>

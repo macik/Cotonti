@@ -28,7 +28,8 @@ foreach (cot_getextplugins('page.first') as $pl)
 
 if ($id > 0 || !empty($al))
 {
-	$where = (!empty($al)) ? "page_alias='".$al."'" : 'page_id='.$id;
+	$where = (!empty($al)) ? "p.page_alias='".$al."'" : 'p.page_id='.$id;
+	if (!empty($c)) $where .= " AND p.page_cat = " . $db->quote($c);
 	$sql_page = $db->query("SELECT p.*, u.* $join_columns
 		FROM $db_pages AS p $join_condition
 		LEFT JOIN $db_users AS u ON u.user_id=p.page_ownerid
@@ -135,6 +136,8 @@ if ($pg > 0)
 $out['canonical_uri'] = cot_url('page', $pageurl_params);
 
 $mskin = cot_tplfile(array('page', $cat['tpl']));
+
+$env['last_modified'] = $pag['page_updated'];
 
 /* === Hook === */
 foreach (cot_getextplugins('page.main') as $pl)
@@ -302,4 +305,3 @@ if ($cache && $usr['id'] === 0 && $cfg['cache_page']
 {
 	$cache->page->write();
 }
-?>

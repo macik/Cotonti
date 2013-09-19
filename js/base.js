@@ -103,7 +103,7 @@ function ajaxSend(settings) {
 		url: encodeURI(url),
 		data: data,
 		beforeSend: function() {
-			if (!settings.nonshowloading) $('#' + settings.divId).append('<span style="position:absolute;left:' + ($('#' + settings.divId).width()/2 - 110) + 'px;top:' + ($('#' + settings.divId).height()/2 + 9) + 'px;" class="loading" id="loading"><img src="./images/spinner.gif" alt="loading"/></span>');
+			if (!settings.nonshowloading) $('#' + settings.divId).append('<span style="position:absolute; left:' + ($('#' + settings.divId).width()/2 - 110) + 'px;top:' + ($('#' + settings.divId).height()/2 - 9) + 'px;" class="loading" id="loading"><img src="./images/spinner.gif" alt="loading"/></span>').css('position', 'relative');
 		},
 		success: function(msg) {
 			if (!settings.nonshowloading) $('#loading').remove();
@@ -243,7 +243,7 @@ function bindHandlers() {
 
 	if (ajaxEnabled) {
 		// AJAX auto-handling
-		$('form.ajax').live('submit', function() {
+		$('body').on('submit', 'form.ajax', function() {
 			if ($(this).attr('method').toUpperCase() == 'POST') {
 				ajaxFormLoad(ajaxMakeHash($(this).attr('action').replace(/#.*$/, ''), $(this).attr('class'), 'post'), $(this).attr('id'));
 			} else {
@@ -251,13 +251,13 @@ function bindHandlers() {
 			}
 			return ajaxError;
 		});
-		$('a.ajax').live('click', function() {
+		$('body').on('click', 'a.ajax', function() {
 			$.historyLoad(ajaxMakeHash($(this).attr('href').replace(/#.*$/, ''), $(this).attr('rel')));
 			return ajaxError;
 		});
-		
+
 		// AJAX action confirmations
-		$('a.confirmLink').live('click', function() {
+		$('body').on('click', 'a.confirmLink', function() {
 			if ($(this).attr('href').match(/message.+920/i)) {
 				if ($('#confirmBox')) {
 					$('#confirmBox').remove();
@@ -273,7 +273,7 @@ function bindHandlers() {
 				return true;
 			}
 		});
-		$('a#confirmNo').live('click', function() {
+		$('body').on('click', 'a#confirmNo', function() {
 			if ($("#confirmBox").is(".jqmWindow"))
 			{
 				$('#confirmBox').jqmHide();

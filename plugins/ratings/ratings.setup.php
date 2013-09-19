@@ -5,8 +5,8 @@ Code=ratings
 Name=Star Ratings
 Category=community-social
 Description=Ratings plugin with jQuery stars
-Version=0.9.1
-Date=2012-11-16
+Version=0.9.2
+Date=2013-03-15
 Author=Cotonti Team
 Copyright=Copyright (c) Cotonti Team 2008-2013
 Notes=BSD License
@@ -34,5 +34,3 @@ css=99:radio:0,1:1:Enable plugin CSS
  */
 
 defined('COT_CODE') or die('Wrong URL');
-
-?>

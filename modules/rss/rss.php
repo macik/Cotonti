@@ -25,10 +25,9 @@ $env['location'] = 'rss';
 require_once cot_langfile('rss', 'module');
 
 // Input import
-$c = cot_import('c', 'G', 'ALP');
-$id = cot_import('id', 'G', 'ALP');
-$c = empty($c) ? "pages" : $c;
-$id = empty($id) ? "all" : $id;
+$m = cot_import('m', 'G', 'ALP');
+$c = cot_import('c', 'G', 'TXT');
+$m = empty($m) ? "pages" : $m;
 
 ob_clean();
 header('Content-type: text/xml; charset=UTF-8');
@@ -36,7 +35,7 @@ $sys['now'] = time();
 
 if ($usr['id'] === 0 && $cache)
 {
-	$rss_cache = $cache->db->get($c . $id, 'rss');
+	$rss_cache = $cache->db->get($m . $c, 'rss');
 	if ($rss_cache)
 	{
 		echo $rss_cache;
@@ -49,7 +48,7 @@ $rss_link = $cfg['mainurl'];
 $rss_description = $cfg['subtitle'];
 
 $domain = $sys['domain'];
-$defult_c = true;
+$default_mode = true;
 
 /* === Hook === */
 foreach (cot_getextplugins('rss.create') as $pl)
@@ -58,12 +57,12 @@ foreach (cot_getextplugins('rss.create') as $pl)
 }
 /* ===== */
 
-if ($c == "topics")
+if ($m == "topics")
 {
 	require_once cot_incfile('forums', 'module');
 
-	$defult_c = false;
-	$topic_id = ($id == 'all') ? 0 : (int) $id;
+	$default_mode = false;
+	$topic_id = empty($c) ? 0 : (int) $c;
 
 	$sql = "SELECT * FROM $db_forum_topics WHERE ft_id=$topic_id";
 	$res = $db->query($sql);
@@ -100,27 +99,28 @@ if ($c == "topics")
 
 			$post_id = $row['fp_id'];
 			$items[$i]['title'] = $row['fp_postername'];
-			$items[$i]['description'] = cot_parse_post_text($post_id, $row['fp_text']);
-			$items[$i]['link'] = COT_ABSOLUTE_URL.cot_url('forums', "m=posts&q=$topic_id&d=$curpage", "#post$post_id", true);
+			$items[$i]['description'] = cot_parse_post_text($row['fp_text']);
+			$url = cot_url('forums', "m=posts&q=$topic_id&d=$curpage", "#post$post_id", true);
+			$items[$i]['link'] = (strpos($url, '://') === false) ? COT_ABSOLUTE_URL . $url : $url;
 			$items[$i]['pubDate'] = cot_date('r', $row['fp_creation']);
 			$i++;
 		}
 		$res->closeCursor();
 	}
 }
-elseif ($c == "section")
+elseif ($m == "section")
 {
 	require_once cot_incfile('forums', 'module');
 
-	$defult_c = false;
-	$forum_id = ($id == 'all') ? 0 : $id;;
+	$default_mode = false;
+	$forum_cat = empty($c) ? 0 : $c;;
 
-	if (isset($structure['forums'][$forum_id]))
+	if (isset($structure['forums'][$forum_cat]))
 	{
-		$rss_title = $structure['forums'][$forum_id]['title'];
-		$rss_description = $structure['forums'][$forum_id]['desc'];
+		$rss_title = $structure['forums'][$forum_cat]['title'];
+		$rss_description = $structure['forums'][$forum_cat]['desc'];
 
-		$all = cot_structure_children('forums', $forum_id);
+		$all = cot_structure_children('forums', $forum_cat);
 		$where = "fp_cat IN ('".implode("', '", $all)."')";
 
 		$sql = "SELECT * FROM $db_forum_posts WHERE $where ORDER BY fp_creation DESC LIMIT ".$cfg['rss']['rss_maxitems'];
@@ -142,13 +142,13 @@ elseif ($c == "section")
 				$flag_private = 1;
 			}
 
-			if (!$flag_private && cot_auth('forums', $forum_id, 'R'))
+			if (!$flag_private && cot_auth('forums', $forum_cat, 'R'))
 			{
 				//$post_url = ($cfg['plugin']['search']['searchurls'] == 'Single') ? cot_url('forums', 'm=posts&id='.$post_id, "", true) : cot_url('forums', 'm=posts&p='.$post_id, '#'.$post_id, true);
 				$post_url = cot_url('forums', 'm=posts&p='.$post_id, '#'.$post_id, true);
 				$items[$i]['title'] = $row['fp_postername']." - ".$topic_title;
-				$items[$i]['description'] = cot_parse_post_text($post_id, $row['fp_text']);
-				$items[$i]['link'] = COT_ABSOLUTE_URL.$post_url;
+				$items[$i]['description'] = cot_parse_post_text($row['fp_text']);
+				$items[$i]['link'] = (strpos($post_url, '://') === false) ? COT_ABSOLUTE_URL . $post_url : $post_url;;
 				$items[$i]['pubDate'] = cot_date('r', $row['fp_creation']);
 			}
 
@@ -156,11 +156,11 @@ elseif ($c == "section")
 		}
 	}
 }
-elseif ($c == "forums")
+elseif ($m == "forums")
 {
 	require_once cot_incfile('forums', 'module');
 
-	$defult_c = false;
+	$default_mode = false;
 	$rss_title = $domain." : ".$L['rss_allforums_item_title'];
 	$rss_description = "";
 
@@ -186,24 +186,25 @@ elseif ($c == "forums")
 		if (!$flag_private && cot_auth('forums', $forum_id, 'R'))
 		{
 			$items[$i]['title'] = $row['fp_postername']." - ".$topic_title;
-			$items[$i]['description'] = cot_parse_post_text($post_id, $row['fp_text']);
-			$items[$i]['link'] = COT_ABSOLUTE_URL.cot_url('forums', "m=posts&p=$post_id", "#$post_id", true);
+			$items[$i]['description'] = cot_parse_post_text($row['fp_text']);
+			$url = cot_url('forums', "m=posts&p=$post_id", "#$post_id", true);
+			$items[$i]['link'] = (strpos($url, '://') === false) ? COT_ABSOLUTE_URL . $url : $url;
 			$items[$i]['pubDate'] = cot_date('r', $row['fp_creation']);
 		}
 
 		$i++;
 	}
 }
-elseif ($defult_c)
+elseif ($default_mode)
 {
 	require_once cot_incfile('page', 'module');
 
-	if ($id != 'all')
+	if (!empty($c) && isset($structure['page'][$c]))
 	{
-		$mtch = $structure['page'][$id]['path'].".";
+		$mtch = $structure['page'][$c]['path'].".";
 		$mtchlen = mb_strlen($mtch);
 		$catsub = array();
-		$catsub[] = $id;
+		$catsub[] = $c;
 
 		foreach ($structure['page'] as $i => $x)
 		{
@@ -215,7 +216,7 @@ elseif ($defult_c)
 
 		$sql = $db->query("SELECT p.*, u.* FROM $db_pages AS p
 				LEFT JOIN $db_users AS u ON p.page_ownerid = u.user_id
-			WHERE page_state=0 AND page_begin <= {$sys['now']} AND (page_expire = 0 OR page_expire > {$sys['now']}) AND page_cat NOT LIKE 'system' AND page_cat IN ('".implode("','", $catsub)."') 
+			WHERE page_state=0 AND page_begin <= {$sys['now']} AND (page_expire = 0 OR page_expire > {$sys['now']}) AND page_cat NOT LIKE 'system' AND page_cat IN ('".implode("','", $catsub)."')
 			ORDER BY page_date DESC LIMIT ".$cfg['rss']['rss_maxitems']);
 	}
 	else
@@ -228,12 +229,12 @@ elseif ($defult_c)
 	$i = 0;
 	while ($row = $sql->fetch())
 	{
-		$row['page_pageurl'] = (empty($row['page_alias'])) ? cot_url('page', 'c='.$row['page_cat'].'&id='.$row['page_id'], '', true) : cot_url('page', 'c='.$row['page_cat'].'&al='.$row['page_alias'], '', true);
+		$url = (empty($row['page_alias'])) ? cot_url('page', 'c='.$row['page_cat'].'&id='.$row['page_id'], '', true) : cot_url('page', 'c='.$row['page_cat'].'&al='.$row['page_alias'], '', true);
 
 		$items[$i]['title'] = $row['page_title'];
-		$items[$i]['link'] = COT_ABSOLUTE_URL . $row['page_pageurl'];
+		$items[$i]['link'] = (strpos($url, '://') === false) ? COT_ABSOLUTE_URL . $url : $url;;
 		$items[$i]['pubDate'] = cot_date('r', $row['page_date']);
-		$items[$i]['description'] = cot_parse_page_text($row['page_id'], $row['page_type'], $row['page_text'], $row['page_pageurl'], $row['page_parser']);
+		$items[$i]['description'] = cot_parse_page_text($row['page_text'], $url, $row['page_parser']);
 		$items[$i]['fields'] = cot_generate_pagetags($row);
 
 		$i++;
@@ -278,13 +279,13 @@ $out_rss = $t->text('MAIN');
 
 if ($usr['id'] === 0 && $cache)
 {
-	$cache->db->store($c . $id, $out_rss, 'rss', $cfg['rss']['rss_timetolive']);
+	$cache->db->store($m . $c, $out_rss, 'rss', $cfg['rss']['rss_timetolive']);
 }
 echo $out_rss;
 
-function cot_parse_page_text($pag_id, $pag_type, $pag_text, $pag_pageurl, $pag_parser)
+function cot_parse_page_text($pag_text, $pag_pageurl, $pag_parser)
 {
-	global $db, $cfg, $db_pages, $usr;
+	global $cfg;
 
 	$pag_text = cot_parse($pag_text, $pag_parser !== 'none', $pag_parser);
 	$readmore = mb_strpos($pag_text, "<!--more-->");
@@ -310,9 +311,9 @@ function cot_parse_page_text($pag_id, $pag_type, $pag_text, $pag_pageurl, $pag_p
 	return $text;
 }
 
-function cot_parse_post_text($post_id, $post_text)
+function cot_parse_post_text($post_text)
 {
-	global $db, $cfg, $db_forum_posts, $usr;
+	global $cfg;
 
 	$post_text = cot_parse($post_text, $cfg['forums']['markup']);
 
@@ -368,5 +369,3 @@ function cot_fix_pubdate($pubdate)
 	$tz_str = $sign . str_pad($base, 4, '0', STR_PAD_LEFT);
 	return str_replace('+0000', $tz_str, $pubdate);
 }
-
-?>

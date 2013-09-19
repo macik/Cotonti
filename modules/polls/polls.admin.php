@@ -29,6 +29,7 @@ $adminpath[] = array(cot_url('admin', 'm=extensions'), $L['Extensions']);
 $adminpath[] = array(cot_url('admin', 'm=extensions&a=details&mod='.$m), $cot_modules[$m]['title']);
 $adminpath[] = array(cot_url('admin', 'm='.$m), $L['Administration']);
 $adminhelp = $L['adm_help_polls'];
+$adminsubtitle = $L['Polls'];
 
 list($pg, $d, $durl) = cot_import_pagenav('d', $cfg['maxrowsperpage']);
 $filter = cot_import('filter', 'G', 'TXT');
@@ -147,7 +148,7 @@ foreach ($sql_polls->fetchAll() as $row)
 	}
 	/* ===== */
 
-	$t->parse('MAIN.POLLS_ROW');	
+	$t->parse('MAIN.POLLS_ROW');
 }
 
 if ($ii == 0)
@@ -226,5 +227,3 @@ foreach (cot_getextplugins('polls.admin.tags') as $pl)
 
 $t->parse('MAIN');
 $adminmain = $t->text('MAIN');
-
-?>

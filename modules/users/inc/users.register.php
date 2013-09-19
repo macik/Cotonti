@@ -16,6 +16,7 @@ require_once cot_incfile('auth');
 
 $v = cot_import('v','G','ALP');
 $y = cot_import('y','G','INT');
+$token = cot_import('token', 'G', 'ALP');
 
 list($usr['auth_read'], $usr['auth_write'], $usr['isadmin']) = cot_auth('users', 'a');
 
@@ -51,8 +52,8 @@ if ($a=='add')
 	$rpassword1 = cot_import('rpassword1','P','HTM',32);
 	$rpassword2 = cot_import('rpassword2','P','HTM',32);
 	$ruser['user_country'] = cot_import('rcountry','P','TXT');
-	$ruser['user_timezone'] = cot_import('rtimezone','P','TXT');
-	$ruser['user_timezone'] = (!$ruser['user_timezone']) ? 'GMT' : $ruser['user_timezone'];
+	$ruser['user_timezone'] = cot_import('rusertimezone','P','TXT');
+	$ruser['user_timezone'] = (!$ruser['user_timezone']) ? $cfg['defaulttimezone'] : $ruser['user_timezone'];
 	$ruser['user_gender'] = cot_import('rusergender','P','TXT');
 	$ruser['user_email'] = mb_strtolower($ruser['user_email']);
 
@@ -143,9 +144,15 @@ elseif ($a == 'validate' && mb_strlen($v) == 32)
 					include $pl;
 				}
 				/* ===== */
-
 				cot_auth_clear($row['user_id']);
-				cot_redirect(cot_url('message', 'msg=106', '', true));
+				if(!empty($token) && $token==$row['user_token'] && $sys['now']<($row['user_regdate']+172800))
+				{
+					cot_redirect(cot_url('login', 'a=check&v='.$v.'&token='.$token, '', true));
+				}
+				else
+				{
+					cot_redirect(cot_url('message', 'msg=106', '', true));
+				}
 			}
 			elseif ($y == 0)
 			{
@@ -154,8 +161,7 @@ elseif ($a == 'validate' && mb_strlen($v) == 32)
 					cot_extrafield_unlinkfiles($row['user_'.$exfld['field_name']], $exfld);
 				}
 
-				$sql = $db->delete($db_users, "user_maingrp='2' AND user_lastlog='0' AND user_id='".$row['user_id']."' ");
-				$sql = $db->delete($db_users, "user_id='".$row['user_id']."'");
+				$sql = $db->delete($db_users, "user_id=".(int)$row['user_id']);
 				$sql = $db->delete($db_groups_users, "gru_userid='".$row['user_id']."'");
 
 				/* === Hook for the plugins === */
@@ -212,7 +218,7 @@ $t->assign(array(
 	'USERS_REGISTER_COUNTRY' => cot_selectbox_countries($ruser['user_country'], 'rcountry'),
 	'USERS_REGISTER_TIMEZONE' => cot_selectbox_timezone($ruser['user_timezone'], 'rusertimezone'),
 	'USERS_REGISTER_GENDER' => cot_selectbox_gender($ruser['user_gender'],'rusergender'),
-	'USERS_REGISTER_BIRTHDATE' => cot_selectbox_date(cot_mktime(1, 0, 0, $rmonth, $rday, $ryear), 'short', 'ruserbirthdate', cot_date('Y', $sys['now']), cot_date('Y', $sys['now']) - 100, false),
+	'USERS_REGISTER_BIRTHDATE' => cot_selectbox_date(0, 'short', 'ruserbirthdate', cot_date('Y', $sys['now']), cot_date('Y', $sys['now']) - 100, false),
 ));
 
 // Extra fields
@@ -240,5 +246,3 @@ $t->parse('MAIN');
 $t->out('MAIN');
 
 require_once $cfg['system_dir'] . '/footer.php';
-
-?>

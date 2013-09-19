@@ -100,6 +100,13 @@ if ($a == 'add')
 	}
 }
 
+// Page cloning support
+$clone = cot_import('clone', 'G', 'INT');
+if ($clone > 0)
+{
+	$rpage = $db->query("SELECT * FROM $db_pages WHERE page_id = ?", $clone)->fetch();
+}
+
 if (empty($rpage['page_cat']) && !empty($c))
 {
 	$rpage['page_cat'] = $c;
@@ -184,5 +191,3 @@ $t->parse('MAIN');
 $t->out('MAIN');
 
 require_once $cfg['system_dir'].'/footer.php';
-
-?>

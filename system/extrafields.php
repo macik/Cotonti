@@ -270,7 +270,7 @@ function cot_import_extrafields($inputname, $extrafield, $source='P', $oldvalue=
 
 		case 'file':
 			global $lang, $cot_translit, $exfldfiles, $exfldsize, $cfg, $uploadfiles, $pl;
-			if ($source == 'P')
+			if ($source == 'P' || $source == 'POST')
 			{
 				$import = $_FILES[$inputname];
 				$import['delete'] = cot_import('rdel_' . $inputname, 'P', 'BOL') ? 1 : 0;
@@ -341,7 +341,9 @@ function cot_import_extrafields($inputname, $extrafield, $source='P', $oldvalue=
 			{
 				$exfldsize[$extrafield['field_name']] = 0;
 				$import = '';
-				$file['old'] = (!empty($oldvalue)) ? "{$cfg['extrafield_files_dir']}/$oldvalue" : '';
+				$extrafield['field_params'] = (!empty($extrafield['field_params'])) ? $extrafield['field_params'] : $cfg['extrafield_files_dir'];
+				$file['old'] = (!empty($oldvalue)) ? "{$extrafield['field_params']}/$oldvalue" : '';
+				$file['field'] = $extrafield['field_name'];
 				$uploadfiles[] = $file;
 			}
 			else
@@ -357,8 +359,9 @@ function cot_import_extrafields($inputname, $extrafield, $source='P', $oldvalue=
 	}
 	if ((is_null($import) || $import === '') && $extrafield['field_required'])
 	{
-		$L['field_required_' . $extrafield['field_name']] = (isset($L['field_required_' . $extrafield['field_name']])) ? $L['field_required_' . $extrafield['field_name']] : $L['field_required'];
-		cot_error('field_required_' . $extrafield['field_name'], $name);
+		$fname = (!empty($extrafield['field_description'])) ? $extrafield['field_description'] : $extrafield['field_name'];
+		$msg = (isset($L['field_required_' . $extrafield['field_name']])) ? 'field_required_' . $extrafield['field_name'] : $L['field_required'].': '.$fname;
+		cot_error($msg, $name);
 	}
 	return $import;
 }
@@ -534,14 +537,14 @@ function cot_extrafield_add($location, $name, $type, $html='', $variants='', $de
 	{
 		return false;
 	}
-	
+
 	if ( $db->query("SELECT field_name FROM $db_extra_fields WHERE field_name = '$name' AND field_location='$location'")->rowCount() > 0 ||
 		($db->query("SHOW COLUMNS FROM $location WHERE SUBSTR(Field, INSTR(Field, '_') + 1) = '$name'")->rowCount() > 0 && !$noalter))
 	{
 		// No adding - fields already exist // Check table cot_$sql_table - if field with same name exists - exit.
 		return false;
 	}
-	
+
 	$fieldsres = $db->query("SHOW COLUMNS FROM $location");
 	while ($fieldrow = $fieldsres->fetch())
 	{
@@ -577,7 +580,6 @@ function cot_extrafield_add($location, $name, $type, $html='', $variants='', $de
 	}
 	switch ($type)
 	{
-		case 'checklistbox':
 		case 'select':
 		case 'radio':
 		case 'range':
@@ -590,6 +592,7 @@ function cot_extrafield_add($location, $name, $type, $html='', $variants='', $de
 			break;
 		case 'double': $sqltype = "DOUBLE NOT NULL default '0'";
 			break;
+		case 'checklistbox':
 		case 'textarea': $sqltype = 'TEXT';
 			break;
 		case 'checkbox': $sqltype = 'BOOL';
@@ -685,7 +688,6 @@ function cot_extrafield_update($location, $oldname, $name, $type, $html='', $var
 
 	switch ($type)
 	{
-		case 'checklistbox':
 		case 'select':
 		case 'radio':
 		case 'range':
@@ -698,6 +700,7 @@ function cot_extrafield_update($location, $oldname, $name, $type, $html='', $var
 			break;
 		case 'double': $sqltype = "DOUBLE NOT NULL default '0'";
 			break;
+		case 'checklistbox':
 		case 'textarea': $sqltype = 'TEXT';
 			break;
 		case 'checkbox': $sqltype = 'BOOL';
@@ -862,4 +865,3 @@ function cot_load_extrafields($forcibly = false)
 
 cot_load_extrafields();
 $cot_extrafields[$db_structure] = (!empty($cot_extrafields[$db_structure])) ? $cot_extrafields[$db_structure] : array();
-?>

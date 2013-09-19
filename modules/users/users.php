@@ -32,5 +32,3 @@ if (!in_array($m, array('details', 'edit', 'passrecover', 'profile', 'register')
 }
 
 include cot_incfile('users', 'module', $m);
-
-?>

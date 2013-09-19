@@ -57,6 +57,8 @@ elseif ($a == 'send' && $rtext != '')
 	cot_message('Done');
 }
 
+$adminsubtitle = $L['contact_title'];
+
 $tuman = new XTemplate(cot_tplfile('contact.tools', 'plug', true));
 $totallines = $db->query("SELECT COUNT(*) FROM $db_contact")->fetchColumn();
 $sql = $db->query("SELECT * FROM $db_contact ORDER BY contact_val ASC, contact_id DESC LIMIT $d, " . $cfg['maxrowsperpage']);
@@ -64,7 +66,7 @@ $sql = $db->query("SELECT * FROM $db_contact ORDER BY contact_val ASC, contact_i
 $pagnav = cot_pagenav('admin', 'm=other&p=contact', $d, $totallines, $cfg['maxrowsperpage']);
 
 $i = 0;
-while ($row = $sql->fetch())
+foreach ($sql->fetchAll() as $row)
 {
 	$i++;
 
@@ -105,7 +107,7 @@ while ($row = $sql->fetch())
 				'CONTACT_' . $tag => $exfld_val,
 				'CONTACT_' . $tag . '_VALUE' => $row['contact_'.$exfld['field_name']],
 				'CONTACT_EXTRAFLD_TITLE' => $exfld_title,
-				'CONTACT_EXTRAFLD' => $exfld_val,
+				'CONTACT_EXTRAFLD' => $exfld['field_type'] == 'file' ? cot_rc_link($cfg['extrafield_files_dir'] . '/' . $exfld_val, $exfld_val) : $exfld_val,
 				'CONTACT_EXTRAFLD_VALUE' => $row['contact_'.$exfld['field_name']]
 			));
 			$tuman->parse('MAIN.DATA.EXTRAFLD');
@@ -145,13 +147,13 @@ if (($a == '') && !empty($id))
 			$tag = mb_strtoupper($exfld['field_name']);
 			$exfld_val = cot_build_extrafields_data('contact', $exfld, $row['contact_'.$exfld['field_name']]);
 			$exfld_title = isset($L['contact_' . $exfld['field_name'] . '_title']) ? $L['contact_' . $exfld['field_name'] . '_title'] : $exfld['field_description'];
-			
+
 			$tuman->assign(array(
 				'CONTACT_' . $tag . '_TITLE' => $exfld_title,
 				'CONTACT_' . $tag => $exfld_val,
 				'CONTACT_' . $tag . '_VALUE' => $row['contact_'.$exfld['field_name']],
 				'CONTACT_EXTRAFLD_TITLE' => $exfld_title,
-				'CONTACT_EXTRAFLD' => $exfld_val,
+				'CONTACT_EXTRAFLD' => $exfld['field_type'] == 'file' ? cot_rc_link($cfg['extrafield_files_dir'] . '/' . $exfld_val, $exfld_val) : $exfld_val,
 				'CONTACT_EXTRAFLD_VALUE' => $row['contact_'.$exfld['field_name']]
 			));
 			$tuman->parse('MAIN.VIEW.EXTRAFLD');
@@ -170,4 +172,3 @@ $tuman->assign(array(
 ));
 $tuman->parse('MAIN');
 $plugin_body .= $tuman->text('MAIN');
-?>

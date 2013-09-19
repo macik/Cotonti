@@ -3,7 +3,7 @@
  * Main function library.
  *
  * @package Cotonti
- * @version 0.9.12
+ * @version 0.9.14
  * @author Cotonti Team
  * @copyright Copyright (c) Cotonti Team 2008-2013
  * @license BSD License
@@ -37,8 +37,8 @@ $usr = array();
 $i = explode(' ', microtime());
 $sys['starttime'] = $i[1] + $i[0];
 
-$cfg['version'] = '0.9.12.1';
-$cfg['dbversion'] = '0.9.12';
+$cfg['version'] = '0.9.14';
+$cfg['dbversion'] = '0.9.14';
 
 // Set default file permissions if not present in config
 if (!isset($cfg['file_perms']))
@@ -254,14 +254,6 @@ function cot_import($name, $source, $filter, $maxlen = 0, $dieonerror = false, $
 		case 'POST':
 			$v = (isset($_POST[$name])) ? $_POST[$name] : NULL;
 			$log = TRUE;
-			if ($filter=='ARR')
-			{
-				if ($buffer)
-				{
-					$v = cot_import_buffered($name, $v, null);
-				}
-				return($v);
-			}
 			break;
 
 		case 'PUT':
@@ -307,7 +299,7 @@ function cot_import($name, $source, $filter, $maxlen = 0, $dieonerror = false, $
 		$v = stripslashes($v);
 	}
 
-	if (($v === '' || $v === NULL) && $buffer)
+	if (($v === '' || $v === NULL || $filter == 'ARR') && $buffer)
 	{
 		$v = cot_import_buffered($name, $v, null);
 		return $v;
@@ -763,6 +755,12 @@ function cot_import_date($name, $usertimezone = true, $returnarray = false, $sou
 	$hour = cot_import($date['hour'], 'D', 'INT');
 	$minute = cot_import($date['minute'], 'D', 'INT');
 
+	if (count($date) > 0 && is_null($year) && is_null($month) && is_null($day) && is_null($hour) && is_null($minute))
+	{
+		// Datetime field is present in form but it is set to zero date (empty)
+		return NULL;
+	}
+
 	if (($month && $day && $year) || ($day && $minute))
 	{
 		$timestamp = cot_mktime($hour, $minute, 0, $month, $day, $year);
@@ -831,7 +829,7 @@ function cot_import_pagenav($var_name, $max_items = 0)
 			$page = 1;
 		}
 		$offset = ($page - 1) * $max_items;
-		$urlnum = $page <= 1 ? 0 : $page;
+		$urlnum = $page <= 1 ? null : $page;
 	}
 	else
 	{
@@ -846,8 +844,8 @@ function cot_import_pagenav($var_name, $max_items = 0)
 		}
 		$page = floor($offset / $max_items) + 1;
 		$urlnum = $offset;
+		$urlnum = ($urlnum > 0) ? $urlnum : null;
 	}
-	$urlnum = ($urlnum > 0) ? $urlnum : '';
 
 	return array($page, $offset, $urlnum);
 }
@@ -1025,15 +1023,35 @@ function cot_rmdir($dir)
  *
  * @param string $content_type Content-Type value (without charset)
  * @param string $response_code HTTP response code, e.g. '404 Not Found'
+ * @param int $last_modified Last modified time
  * @return bool
  */
-function cot_sendheaders($content_type = 'text/html', $response_code = '200 OK')
+function cot_sendheaders($content_type = 'text/html', $response_code = '200 OK', $last_modified = 0)
 {
+	global $sys;
+
 	$protocol = (isset($_SERVER['SERVER_PROTOCOL'])) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.1';
+	$last_modified = (int)$last_modified > 0 ? (int)$last_modified : 0;
+	if ($last_modified > 0)
+	{
+		$modified_since = (isset($_ENV['HTTP_IF_MODIFIED_SINCE'])) ? strtotime(substr($_ENV['HTTP_IF_MODIFIED_SINCE'], 5)) : false;
+		$modified_since = (isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])) ? strtotime(substr($_SERVER['HTTP_IF_MODIFIED_SINCE'], 5)) : $modified_since;
+
+		if ($modified_since && $modified_since >= $last_modified)
+		{
+			header($protocol . ' 304 Not Modified');
+			exit;
+		}
+	}
+	else
+	{
+		$last_modified = $sys['now'] - 3600*12;
+	}
+
 	header($protocol . ' ' . $response_code);
+
 	header('Expires: Mon, Apr 01 1974 00:00:00 GMT');
-	header('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT');
-	header('Cache-Control: post-check=0,pre-check=0', FALSE);
+	header('Last-Modified: '.gmdate('D, d M Y H:i:s', $last_modified).' GMT');
 	header('Content-Type: '.$content_type.'; charset=UTF-8');
 	header('Cache-Control: no-store,no-cache,must-revalidate');
 	header('Cache-Control: post-check=0,pre-check=0', FALSE);
@@ -1317,12 +1335,11 @@ function cot_structure_parents($area, $cat, $type = 'full')
 
 	if ($type == 'first')
 	{
-		reset($pathcodes);
-		$pathcodes = current($pathcodes);
+		return $pathcodes[0];
 	}
 	elseif ($type == 'last')
 	{
-		$pathcodes = end($pathcodes);
+		return (count($pathcodes) > 1) ? $pathcodes[count($pathcodes) - 2] : null;
 	}
 
 	return $pathcodes;
@@ -2000,6 +2017,10 @@ function cot_build_group($grpid, $title = false)
 	}
 	else
 	{
+		if ($type == 'title' && isset($L['users_grp_' . $grpid . '_title']))
+		{
+			return cot_rc_link(cot_url('users', 'gm=' . $grpid), $L['users_grp_' . $grpid . '_title']);
+		}
 		return cot_rc_link(cot_url('users', 'gm=' . $grpid), $cot_groups[$grpid][$type]);
 	}
 }
@@ -2502,22 +2523,22 @@ function cot_check($condition, $message, $src = 'default')
  */
 function cot_check_messages($src = '', $class = '')
 {
-	global $error_string;
+	global $error_string, $sys;
 
 	if (empty($src) && empty($class))
 	{
-		return (is_array($_SESSION['cot_messages']) && count($_SESSION['cot_messages']) > 0)
+		return (is_array($_SESSION['cot_messages'][$sys['site_id']]) && count($_SESSION['cot_messages'][$sys['site_id']]) > 0)
 			|| !empty($error_string);
 	}
 
-	if (!is_array($_SESSION['cot_messages']))
+	if (!is_array($_SESSION['cot_messages'][$sys['site_id']]))
 	{
 		return false;
 	}
 
 	if (empty($src))
 	{
-		foreach ($_SESSION['cot_messages'] as $src => $grp)
+		foreach ($_SESSION['cot_messages'][$sys['site_id']] as $src => $grp)
 		{
 			foreach ($grp as $msg)
 			{
@@ -2530,11 +2551,11 @@ function cot_check_messages($src = '', $class = '')
 	}
 	elseif (empty($class))
 	{
-		return count($_SESSION['cot_messages'][$src]) > 0;
+		return count($_SESSION['cot_messages'][$sys['site_id']][$src]) > 0;
 	}
 	else
 	{
-		foreach ($_SESSION['cot_messages'][$src] as $msg)
+		foreach ($_SESSION['cot_messages'][$sys['site_id']][$src] as $msg)
 		{
 			if ($msg['class'] == $class)
 			{
@@ -2555,22 +2576,22 @@ function cot_check_messages($src = '', $class = '')
  */
 function cot_clear_messages($src = '', $class = '')
 {
-	global $error_string;
+	global $error_string, $sys;
 
 	if (empty($src) && empty($class))
 	{
-		unset($_SESSION['cot_messages']);
+		unset($_SESSION['cot_messages'][$sys['site_id']]);
 		unset($error_string);
 	}
 
-	if (!is_array($_SESSION['cot_messages']))
+	if (!is_array($_SESSION['cot_messages'][$sys['site_id']]))
 	{
 		return;
 	}
 
 	if (empty($src))
 	{
-		foreach ($_SESSION['cot_messages'] as $src => $grp)
+		foreach ($_SESSION['cot_messages'][$sys['site_id']] as $src => $grp)
 		{
 			$new_grp = array();
 			foreach ($grp as $msg)
@@ -2582,22 +2603,22 @@ function cot_clear_messages($src = '', $class = '')
 			}
 			if (count($new_grp) > 0)
 			{
-				$_SESSION['cot_messages'][$src] = $new_grp;
+				$_SESSION['cot_messages'][$sys['site_id']][$src] = $new_grp;
 			}
 			else
 			{
-				unset($_SESSION['cot_messages'][$src]);
+				unset($_SESSION['cot_messages'][$sys['site_id']][$src]);
 			}
 		}
 	}
 	elseif (empty($class))
 	{
-		unset($_SESSION['cot_messages'][$src]);
+		unset($_SESSION['cot_messages'][$sys['site_id']][$src]);
 	}
 	else
 	{
 		$new_grp = array();
-		foreach ($_SESSION['cot_messages'][$src] as $msg)
+		foreach ($_SESSION['cot_messages'][$sys['site_id']][$src] as $msg)
 		{
 			if ($msg['class'] != $class)
 			{
@@ -2606,11 +2627,11 @@ function cot_clear_messages($src = '', $class = '')
 		}
 		if (count($new_grp) > 0)
 		{
-			$_SESSION['cot_messages'][$src] = $new_grp;
+			$_SESSION['cot_messages'][$sys['site_id']][$src] = $new_grp;
 		}
 		else
 		{
-			unset($_SESSION['cot_messages'][$src]);
+			unset($_SESSION['cot_messages'][$sys['site_id']][$src]);
 		}
 	}
 }
@@ -2670,10 +2691,13 @@ function cot_diefatal($text='Reason is unknown.', $title='Fatal error')
 /**
  * Terminates script execution and displays message page
  *
- * @param int $code Message code
- * @param bool $header Render page header
+ * @param integer $code          Message code
+ * @param boolean $header        Render page header
+ * @param string  $message_title Custom page title
+ * @param string  $message_body  Custom message body
+ * @param string  $redirect      Optional URL to redirect after 3 seconds
  */
-function cot_die_message($code, $header = TRUE, $message_title = '', $message_body = '')
+function cot_die_message($code, $header = TRUE, $message_title = '', $message_body = '', $redirect = '')
 {
 	// Globals and requirements
 	global $error_string, $out, $L, $R;
@@ -2741,6 +2765,14 @@ function cot_die_message($code, $header = TRUE, $message_title = '', $message_bo
 	$tpl_type = defined('COT_ADMIN') ? 'core' : 'module';
 	$tpl_path = '';
 	$stylesheet = file_exists(cot_schemefile()) ? '<link rel="stylesheet" type="text/css" href="'.cot_schemefile().'"/>' : '';
+	$redirect_meta = '';
+	if (!empty($redirect))
+	{
+		if (cot_url_check($redirect))
+		{
+			$redirect_meta = '<meta http-equiv="refresh" content="3; url='.$redirect.'" />';
+		}
+	}
 	if ($header)
 	{
 		$tpl_path = cot_tplfile("error.$code", $tpl_type);
@@ -2750,7 +2782,7 @@ function cot_die_message($code, $header = TRUE, $message_title = '', $message_bo
 		}
 		else
 		{
-			echo '<html><head><title>'.$title.'</title><meta name="robots" content="noindex" />'.$R['code_basehref'].$stylesheet.'</head><body><div class="block">';
+			echo '<html><head><title>'.$title.'</title><meta name="robots" content="noindex" />'.$R['code_basehref'].$stylesheet.$redirect_meta.'</head><body><div class="block">';
 		}
 	}
 
@@ -2771,6 +2803,7 @@ function cot_die_message($code, $header = TRUE, $message_title = '', $message_bo
 			'AJAX_MODE' => COT_AJAX,
 			'MESSAGE_BASEHREF' => $R['code_basehref'],
 			'MESSAGE_STYLESHEET' => $stylesheet,
+			'MESSAGE_REDIRECT' => $redirect_meta,
 			'MESSAGE_TITLE' => $title,
 			'MESSAGE_BODY' => $body
 		));
@@ -2873,20 +2906,21 @@ function cot_error_found()
  */
 function cot_get_messages($src = 'default', $class = '')
 {
+	global $sys;
 	$messages = array();
 	if (empty($src) && empty($class))
 	{
-		return $_SESSION['cot_messages'];
+		return $_SESSION['cot_messages'][$sys['site_id']];
 	}
 
-	if (!is_array($_SESSION['cot_messages']))
+	if (!is_array($_SESSION['cot_messages'][$sys['site_id']]))
 	{
 		return $messages;
 	}
 
 	if (empty($src))
 	{
-		foreach ($_SESSION['cot_messages'] as $src => $grp)
+		foreach ($_SESSION['cot_messages'][$sys['site_id']] as $src => $grp)
 		{
 			foreach ($grp as $msg)
 			{
@@ -2898,15 +2932,15 @@ function cot_get_messages($src = 'default', $class = '')
 			}
 		}
 	}
-	elseif (is_array($_SESSION['cot_messages'][$src]))
+	elseif (is_array($_SESSION['cot_messages'][$sys['site_id']][$src]))
 	{
 		if (empty($class))
 		{
-			return $_SESSION['cot_messages'][$src];
+			return $_SESSION['cot_messages'][$sys['site_id']][$src];
 		}
 		else
 		{
-			foreach ($_SESSION['cot_messages'][$src] as $msg)
+			foreach ($_SESSION['cot_messages'][$sys['site_id']][$src] as $msg)
 			{
 				if ($msg['class'] != $class)
 				{
@@ -2930,10 +2964,10 @@ function cot_get_messages($src = 'default', $class = '')
  */
 function cot_implode_messages($src = 'default', $class = '')
 {
-	global $R, $L, $error_string;
+	global $R, $L, $error_string, $sys;
 	$res = '';
 
-	if (!is_array($_SESSION['cot_messages']))
+	if (!is_array($_SESSION['cot_messages'][$sys['site_id']]))
 	{
 		return;
 	}
@@ -2997,13 +3031,13 @@ function cot_log_import($s, $e, $v, $o)
  */
 function cot_message($text, $class = 'ok', $src = 'default')
 {
-	global $cfg;
+	global $cfg, $sys;
 	if (!$cfg['msg_separate'])
 	{
 		// Force the src to default if all errors are displayed in the same place
 		$src = 'default';
 	}
-	$_SESSION['cot_messages'][$src][] = array(
+	$_SESSION['cot_messages'][$sys['site_id']][$src][] = array(
 		'text' => $text,
 		'class' => $class
 	);
@@ -3050,7 +3084,7 @@ function cot_incfile($name, $type = 'core', $part = 'functions')
  * @param string $type Part type: 'plug', 'module' or 'core'
  * @param string $default Default (fallback) language code
  * @param string $lang Set this to override global $lang
- * @return string
+ * @return mixed       Langfile path or FALSE if no suitable files were found
  */
 function cot_langfile($name, $type = 'plug', $default = 'en', $lang = null)
 {
@@ -3069,7 +3103,7 @@ function cot_langfile($name, $type = 'plug', $default = 'en', $lang = null)
 		{
 			return $cfg['modules_dir']."/$name/lang/$name.$lang.lang.php";
 		}
-		else
+		elseif (@file_exists($cfg['modules_dir']."/$name/lang/$name.$default.lang.php"))
 		{
 			return $cfg['modules_dir']."/$name/lang/$name.$default.lang.php";
 		}
@@ -3080,7 +3114,7 @@ function cot_langfile($name, $type = 'plug', $default = 'en', $lang = null)
 		{
 			return $cfg['lang_dir']."/$lang/$name.$lang.lang.php";
 		}
-		else
+		elseif (@file_exists($cfg['lang_dir']."/$default/$name.$default.lang.php"))
 		{
 			return $cfg['lang_dir']."/$default/$name.$default.lang.php";
 		}
@@ -3095,11 +3129,12 @@ function cot_langfile($name, $type = 'plug', $default = 'en', $lang = null)
 		{
 			return $cfg['plugins_dir']."/$name/lang/$name.$lang.lang.php";
 		}
-		else
+		elseif (@file_exists($cfg['plugins_dir']."/$name/lang/$name.$default.lang.php"))
 		{
 			return $cfg['plugins_dir']."/$name/lang/$name.$default.lang.php";
 		}
 	}
+	return false;
 }
 
 /**
@@ -3475,7 +3510,7 @@ function cot_timezone_list($withgmt = false, $dst = false)
 		array_multisort($offsets, SORT_ASC, $names, SORT_ASC, $timezonelist);
 		$timezones = $timezonelist;
 	}
-	return $withgmt ? array_merge(array(array('name' => 'GMT', 'offset' => 0, 'description' => 'GMT')), $timezones) : $timezones;
+	return $withgmt ? array_merge(array(array('name' => 'GMT', 'identifier' => 'GMT', 'offset' => 0, 'description' => 'GMT')), $timezones) : $timezones;
 }
 
 /**
@@ -4231,10 +4266,7 @@ function cot_themerc_list($theme_file)
 	$L = array();
 	$R = array();
 	include $theme_file;
-	return array(
-		array_keys($L),
-		array_keys($R)
-	);
+	return array(array_keys($L), array_keys($R));
 }
 
 /**
@@ -5136,7 +5168,16 @@ function cot_redirect($url)
 	if (!cot_url_check($url))
 	{
 		// No redirects to foreign domains
-		$url = $url == '/' || $url == $sys['site_uri'] ? COT_ABSOLUTE_URL : COT_ABSOLUTE_URL . $url;
+		if ($url == '/' || $url == $sys['site_uri'])
+		{
+			$url = COT_ABSOLUTE_URL;
+		}
+		else
+		{
+			if ($url[0] === '/')
+				$url = mb_substr($url, 1);
+			$url = COT_ABSOLUTE_URL . $url;
+		}
 	}
 
 	if (defined('COT_AJAX') && COT_AJAX)
@@ -5279,7 +5320,7 @@ function cot_url($name, $params = '', $tail = '', $htmlspecialchars_bypass = fal
 function cot_url_check($url)
 {
 	global $sys;
-	return preg_match('`^'.preg_quote($sys['scheme'].'://').'([^/]+\.)?'.preg_quote($sys['domain']).'`i', $url);
+	return preg_match('`^'.preg_quote($sys['scheme'].'://').'([\w\p{L}\.\-]+\.)?'.preg_quote($sys['domain']).'`ui', $url);
 }
 
 /**
@@ -5413,7 +5454,13 @@ function cot_declension($digit, $expr, $onlyword = false, $canfrac = false)
 {
 	global $lang, $Ls;
 
-	$expr = is_string($expr) ? $Ls[$expr] : $expr;
+	$expr = is_string($expr) && isset($Ls[$expr]) ? $Ls[$expr] : $expr;
+
+	if (is_string($expr) && mb_strpos($expr, ',') !== false)
+	{
+		$expr = preg_split('#\s*,\s*#', $expr);
+	}
+
 	if (!is_array($expr))
 	{
 		return trim(($onlyword ? '' : "$digit ").$expr);
@@ -5486,5 +5533,3 @@ if (isset($cfg['customfuncs']) && $cfg['customfuncs'])
 {
 	require_once $cfg['system_dir'] . '/functions.custom.php';
 }
-
-?>

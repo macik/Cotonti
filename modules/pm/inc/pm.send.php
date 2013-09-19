@@ -46,7 +46,7 @@ if ($a == 'send')
 	}
 	if (mb_strlen($newpmtext) > $cfg['pm']['maxsize'])
 	{
-		cot_error('pm_bodytoolong', 'newpmtext');
+		cot_error(cot_rc('pm_bodytoolong', array('size' => $cfg['pm']['maxsize'])), 'newpmtext');
 	}
 	$newpmtitle .= (mb_strlen($newpmtitle) < 2) ? ' . . . ' : '';
 	/* === Hook === */
@@ -75,7 +75,7 @@ if ($a == 'send')
 			include $pl;
 		}
 		/* ===== */
-		cot_redirect(cot_url('pm', 'f=sentbox'));
+		cot_redirect(cot_url('pm', 'f=sentbox', '', true));
 	}
 	else				//send message
 
@@ -164,7 +164,7 @@ if ($a == 'send')
 
 			if($stats_enabled) { cot_stat_inc('totalpms'); }
 			cot_shield_update(30, "New private message (".$totalrecipients.")");
-			cot_redirect(cot_url('pm', 'f=sentbox'));
+			cot_redirect(cot_url('pm', 'f=sentbox', '', true));
 		}
 	}
 }
@@ -301,4 +301,3 @@ $t->parse('MAIN');
 $t->out('MAIN');
 
 require_once $cfg['system_dir'] . '/footer.php';
-?>

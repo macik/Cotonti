@@ -1,10 +1,10 @@
 <!-- BEGIN: MAIN -->
 		<h2>{PHP.L.Users}</h2>
-		{FILE "{PHP.cfg.themes_dir}/{PHP.cfg.defaulttheme}/warnings.tpl"}
+		{FILE "{PHP.cfg.system_dir}/admin/tpl/warnings.tpl"}
 
 		<div class="block button-toolbar">
 			<a title="{PHP.L.Configuration}" href="{ADMIN_USERS_URL}" class="button">{PHP.L.Configuration}</a>
-			<a href="{ADMIN_USERS_EXTRAFIELDS_URL}" class="button">{PHP.L.adm_extrafields_desc}</a>
+			<a href="{ADMIN_USERS_EXTRAFIELDS_URL}" class="button">{PHP.L.adm_extrafields}</a>
 		</div>
 
 <!-- BEGIN: ADMIN_USERS_DEFAULT -->
@@ -23,7 +23,10 @@
 					<!-- IF {PHP.hidden_groups} AND {ADMIN_USERS_ROW_GRP_HIDDEN} == Yes -->{PHP.R.admin_icon_usergroup0}<!-- ELSE -->{PHP.R.admin_icon_usergroup1}<!-- ENDIF -->
 					<!-- ENDIF -->
 					</td>
-					<td><a href="{ADMIN_USERS_ROW_GRP_TITLE_URL}" class="ajax" title="{PHP.L.Edit}">{ADMIN_USERS_ROW_GRP_NAME} (#{ADMIN_USERS_ROW_GRP_ID})</a></td>
+					<td>
+						<p class="strong"><a href="{ADMIN_USERS_ROW_GRP_TITLE_URL}" class="ajax" title="{PHP.L.Edit}">{ADMIN_USERS_ROW_GRP_NAME} (#{ADMIN_USERS_ROW_GRP_ID})</a></p>
+						<p class="small">{ADMIN_USERS_ROW_GRP_DESC}</p>
+					</td>
 					<td class="centerall">{ADMIN_USERS_ROW_GRP_COUNT_MEMBERS}</td>
 					<td class="centerall">{ADMIN_USERS_ROW_GRP_DISABLED}</td>
 					<td class="centerall action">

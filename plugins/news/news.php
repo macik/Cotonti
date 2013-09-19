@@ -61,6 +61,10 @@ if (count($cats) > 0)
 	{
 		$cat = ($catn == 0) ? $c : $v[0];
 		$tagname = str_replace(array(' ', ',', '.', '-'), '_', strtoupper($v[0]));
+		if (!preg_match('#^\w+$#', $tagname))
+		{
+			$tagname = $structure['page'][$v[0]]['id'];
+		}
 
 		// Cache for guests
 		if ($usr['id'] == 0 && $cache && (int) $cfg['plugin']['news']['cache_ttl'] > 0)
@@ -92,6 +96,11 @@ if (count($cats) > 0)
 			WHERE $where ORDER BY page_date DESC LIMIT " . $v[3]['d'] . ", " . $v[1]);
 		$totalnews = $db->query("SELECT COUNT(*)
 			FROM $db_pages AS p $news_join_tables WHERE " . $where)->fetchColumn();
+
+		if ($v[3]['d'] < 0 || $totalnews > 0 && $v[3]['d'] > $totalnews)
+		{
+			cot_die_message(404);
+		}
 
 		if (!$cfg['plugin']['news']['syncpagination'])
 		{
@@ -172,4 +181,3 @@ if (count($cats) > 0)
 		$catn++;
 	}
 }
-?>

@@ -34,7 +34,7 @@ $db_pfs_folders = (isset($db_pfs_folders)) ? $db_pfs_folders : $db_x . 'pfs_fold
  * @param string $c2 Input name
  * @param string $title Link title
  * @param string $parser Custom parser (otional)
- * @return string 
+ * @return string
  */
 function cot_build_pfs($id, $c1, $c2, $title, $parser = '')
 {
@@ -215,6 +215,8 @@ function cot_pfs_deleteall($userid)
 	{
 		return 0;
 	}
+	$pfs_dir_user = cot_pfs_path($userid);
+	$thumbs_dir_user = cot_pfs_thumbpath($userid);
 	$sql = $db->query("SELECT pfs_file, pfs_folderid FROM $db_pfs WHERE pfs_userid=$userid");
 
 	while($row = $sql->fetch())
@@ -483,6 +485,8 @@ function cot_pfs_upload($userid, $folderid='')
 				$fcheck = cot_file_check($u_tmp_name, $u_name, $f_extension);
 				if($fcheck == 1)
 				{
+					$pfs_dir_user = cot_pfs_path($userid);
+					$thumbs_dir_user = cot_pfs_thumbpath($userid);
 					if (!file_exists($pfs_dir_user.$npath.$u_newname))
 					{
 						$is_moved = true;
@@ -639,5 +643,3 @@ function cot_userinfo($id)
 		return ($res);
 	}
 }
-
-?>

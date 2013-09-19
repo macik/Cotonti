@@ -20,7 +20,7 @@ require_once cot_incfile('bbcode', 'plug');
 
 $bb_t = new XTemplate(cot_tplfile('bbcode.admin', 'plug', true));
 
-$out['subtitle'] = $L['adm_bbcodes'];
+$adminsubtitle = $L['adm_bbcodes'];
 $adminhelp = $L['adm_help_bbcodes'];
 
 $a = cot_import('a', 'G', 'ALP');
@@ -183,7 +183,7 @@ elseif ($a == 'convert')
 		while ($row = $res->fetch())
 		{
 			$html = cot_parse_bbcode($row['com_text']);
-			$db->update($db_pm, array('com_text' => $html), 'com_id = ' . $row['com_id']);
+			$db->update($db_com, array('com_text' => $html), 'com_id = ' . $row['com_id']);
 		}
 		$res->closeCursor();
 		if ($has_html)
@@ -246,6 +246,8 @@ foreach ($res->fetchAll() as $row)
 {
 	$id = $row['bbc_id'];
 	$bb_t->assign(array(
+		'ADMIN_BBCODE_ROW_ID' => $row['bbc_id'],
+		'ADMIN_BBCODE_ROW_TITLE' => $row['bbc_name'],
 		'ADMIN_BBCODE_ROW_NAME' => cot_inputbox('text', 'bbca_name['.$id.']', $row['bbc_name']),
 		'ADMIN_BBCODE_ROW_ENABLED' => cot_checkbox($row['bbc_enabled'], 'bbca_enabled['.$id.']'),
 		'ADMIN_BBCODE_ROW_CONTAINER' => cot_checkbox($row['bbc_container'], 'bbca_container['.$id.']'),
@@ -342,5 +344,3 @@ foreach (cot_getextplugins('bbcode.admin.tags') as $pl)
 /* ===== */
 $bb_t->parse('MAIN');
 $plugin_body = $bb_t->text('MAIN');
-
-?>

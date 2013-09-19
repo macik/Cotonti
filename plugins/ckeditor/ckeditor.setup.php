@@ -5,10 +5,10 @@ Code=ckeditor
 Name=CKEditor
 Category=editor-parser
 Description=WYSIWYG HTML editor
-Version=0.9.0-3.6.5
-Date=2012-10-24
+Version=0.9.3-4.1.1
+Date=2013-04-26
 Author=CKSource, http://ckeditor.com/
-Copyright=(c) 2003 - 2012 CKSource - Frederico Knabben.
+Copyright=(c) 2003 - 2013 CKSource - Frederico Knabben.
 Notes=Licensed under the terms of any of the following licenses: GPL, LGPL, MPL
 SQL=
 Auth_guests=R
@@ -25,5 +25,3 @@ cdn_url=02:string::ckeditor-fluid.appspot.com:CDN URL (without protocol part and
 ==================== */
 
 defined('COT_CODE') or die('Wrong URL');
-
-?>

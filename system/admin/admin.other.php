@@ -28,6 +28,9 @@ if(!empty($p))
 	list($usr['auth_read'], $usr['auth_write'], $usr['isadmin']) = cot_auth('plug', $p);
 	cot_block($usr['isadmin']);
 
+	$env['ext'] = $p;
+	$adminsubtitle = $cot_plugins_active[$p]['title'];
+
 	if (file_exists(cot_langfile($p, 'plug')))
 	{
 		require_once cot_langfile($p, 'plug');
@@ -69,6 +72,7 @@ if(!empty($p))
 else
 {
 	$adminpath[] = array(cot_url('admin', 'm=other'), $L['Other']);
+	$adminsubtitle = $L['Other'];
 	list($usr['auth_read'], $usr['auth_write'], $usr['isadmin']) = cot_auth('admin', 'a');
 	cot_block($usr['auth_read']);
 
@@ -100,12 +104,13 @@ else
 			usort($target, 'cot_admin_other_cmp');
 			foreach ($target as $pl)
 			{
-				$ext_info = cot_get_extensionparams($pl['pl_code'], $type == 'module');	
+				$ext_info = cot_get_extensionparams($pl['pl_code'], $type == 'module');
 				$t->assign(array(
 					'ADMIN_OTHER_EXT_URL' => $type == 'plug' ? cot_url('admin', 'm=other&p=' . $pl['pl_code']) :
 						cot_url('admin', 'm=' . $pl['pl_code']),
 					'ADMIN_OTHER_EXT_ICO' => $ext_info['icon'],
-					'ADMIN_OTHER_EXT_NAME' => $ext_info['name']
+					'ADMIN_OTHER_EXT_NAME' => $ext_info['name'],
+					'ADMIN_OTHER_EXT_DESC' => $ext_info['desc']
 				));
 				$t->parse('MAIN.SECTION.ROW');
 			}
@@ -137,5 +142,3 @@ else
 	$t->parse('MAIN');
 	$adminmain = $t->text('MAIN');
 }
-
-?>

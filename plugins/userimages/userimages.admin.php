@@ -27,6 +27,7 @@ require_once cot_langfile('userimages');
 require_once cot_incfile('configuration');
 
 $adminhelp = $L['userimages_help'];
+$adminsubtitle = $L['userimages_title'];
 
 /* === Hook === */
 foreach (cot_getextplugins('userimages.admin.first') as $pl)
@@ -94,5 +95,3 @@ foreach (cot_getextplugins('userimages.admin.tags') as $pl)
 
 $tt->parse('MAIN');
 $plugin_body = $tt->text('MAIN');
-
-?>

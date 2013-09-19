@@ -17,6 +17,7 @@ defined('COT_CODE') or die('Wrong URL.');
  */
 $L['Extension'] = 'Расширение';
 $L['Extensions'] = 'Расширения';
+$L['Parameter'] = 'Параметр';
 $L['Structure'] = 'Структура';
 
 /**
@@ -60,22 +61,30 @@ $L['home_update_revision'] = 'Текущая версия: <span style="color:#C
  */
 $L['core_forums'] = &$L['Forums'];
 $L['core_locale'] = &$L['Locale'];
+$L['core_locale_desc'] = 'Установка языка и часового пояса по умолчанию';
 $L['core_main'] = 'Настройки сайта';
+$L['core_main_desc'] = 'Настройки сайта, глобальные настройки списков';
 $L['core_menus'] = &$L['Menus'];
+$L['core_menus_desc'] = 'Слоты для публикации простой текстовой информации';
 $L['core_page'] = &$L['Pages'];
 $L['core_parser'] = &$L['Parser'];
 $L['core_performance'] = 'Производительность';
+$L['core_performance_desc'] = 'Gzip-сжатие, консолидатор ресурсов, включение Ajax и jQuery';
 $L['core_pfs'] = &$L['PFS'];
 $L['core_plug'] = &$L['Plugins'];
 $L['core_pm'] = &$L['Private_Messages'];
 $L['core_polls'] = &$L['Polls'];
 $L['core_rss'] = &$L['RSS_Feeds'];
 $L['core_security'] = &$L['Security'];
-$L['core_sessions'] = 'Сессий';
+$L['core_security_desc'] = 'Защита, CAPTCHA, режимы отладки и обслуживания';
+$L['core_sessions'] = 'Сессии';
+$L['core_sessions_desc'] = 'Настройки cookies и фиксирования авторизаций';
 $L['core_structure'] = &$L['Categories'];
 $L['core_theme'] = &$L['Themes'];
+$L['core_theme_desc'] = 'Настройки темы и элементов ее разметки';
 $L['core_time'] = 'Время и дата';
 $L['core_title'] = 'Заголовки и мета-теги';
+$L['core_title_desc'] = 'Настройка META Title для главной и внутренних страниц сайта';
 
 $L['cfg_struct_defaults'] = 'Настройки по умолчанию для структуры';
 
@@ -94,121 +103,189 @@ $L['short_struct'] = 'Структ';
  * Config Section
  * Locale Subsection
  */
-$L['cfg_forcedefaultlang'] = array('Принудительная установка языка по умолчанию для всех пользователей', ' ');
-$L['cfg_defaulttimezone'] = array('Часовой пояс по умолчанию', 'Для гостей и при регистрации, от -12 до +12');
+$L['cfg_forcedefaultlang'] = 'Принудительная установка языка по умолчанию для всех пользователей';
+$L['cfg_forcedefaultlang_hint'] = ' ';
+$L['cfg_defaulttimezone'] = 'Часовой пояс по умолчанию';
+$L['cfg_defaulttimezone_hint'] = 'Для гостей и при регистрации, от -12 до +12';
 
 /**
  * Config Section
  * Main Subsection
  */
-$L['cfg_adminemail'] = array('E-mail администратора сайта', 'Обязательно!');
-$L['cfg_clustermode'] = array('Серверный кластер', 'Выберите Да, если используется кластерная система балансировки нагрузок.');
-$L['cfg_confirmlinks'] = array('Подтверждать потенциально опасные действия');
-$L['cfg_easypagenav'] = array('Дружественная паджинация', 'Использует номера страниц в ссылках вместо смещений БД');
-$L['cfg_hostip'] = array('IP-адрес сервера', 'Необязательно');
-$L['cfg_maxrowsperpage'] = array('Макс. количество элементов на страницу', 'Стандартный лимит элементов для паджинации');
-$L['cfg_parser'] = array('Парсер разметки', 'По умолчанию: простой текст');
+$L['cfg_adminemail'] = 'E-mail администратора сайта';
+$L['cfg_adminemail_hint'] = 'Обязательно!';
+$L['cfg_clustermode'] = 'Серверный кластер';
+$L['cfg_clustermode_hint'] = 'Выберите Да, если используется кластерная система балансировки нагрузок.';
+$L['cfg_confirmlinks'] = 'Подтверждать потенциально опасные действия';
+$L['cfg_default_show_installed'] = 'Показывать только установленные расширения по умолчанию';
+$L['cfg_easypagenav'] = 'Дружественная паджинация';
+$L['cfg_easypagenav_hint'] = 'Использует номера страниц в ссылках вместо смещений БД';
+$L['cfg_hostip'] = 'IP-адрес сервера';
+$L['cfg_hostip_hint'] = 'Необязательно';
+$L['cfg_maxrowsperpage'] = 'Макс. количество элементов на страницу';
+$L['cfg_maxrowsperpage_hint'] = 'Стандартный лимит элементов для паджинации';
+$L['cfg_parser'] = 'Парсер разметки';
+$L['cfg_parser_hint'] = 'По умолчанию: простой текст';
 
 /**
  * Config Section
  * Menus Subsection
  */
-$L['cfg_banner'] = array('Баннер<br />{HEADER_BANNER} в header.tpl', ' ');
-$L['cfg_bottomline'] = array('Нижняя строка<br />{FOOTER_BOTTOMLINE} в footer.tpl', ' ');
-$L['cfg_topline'] = array('Верхняя строка<br />{HEADER_TOPLINE} в header.tpl', ' ');
+$L['cfg_banner'] = 'Баннер<br />{HEADER_BANNER} в header.tpl';
+$L['cfg_banner_hint'] = ' ';
+$L['cfg_bottomline'] = 'Нижняя строка<br />{FOOTER_BOTTOMLINE} в footer.tpl';
+$L['cfg_bottomline_hint'] = ' ';
+$L['cfg_topline'] = 'Верхняя строка<br />{HEADER_TOPLINE} в header.tpl';
+$L['cfg_topline_hint'] = ' ';
 
-$L['cfg_menu1'] = array('Меню #1<br />{PHP.cfg.menu1} во всех файлах .tpl', ' ');
-$L['cfg_menu2'] = array('Меню #2<br />{PHP.cfg.menu2} во всех файлах .tpl', ' ');
-$L['cfg_menu3'] = array('Меню #3<br />{PHP.cfg.menu3} во всех файлах .tpl', ' ');
-$L['cfg_menu4'] = array('Меню #4<br />{PHP.cfg.menu4} во всех файлах .tpl', ' ');
-$L['cfg_menu5'] = array('Меню #5<br />{PHP.cfg.menu5} во всех файлах .tpl', ' ');
-$L['cfg_menu6'] = array('Меню #6<br />{PHP.cfg.menu6} во всех файлах .tpl', ' ');
-$L['cfg_menu7'] = array('Меню #7<br />{PHP.cfg.menu7} во всех файлах .tpl', ' ');
-$L['cfg_menu8'] = array('Меню #8<br />{PHP.cfg.menu8} во всех файлах .tpl', ' ');
-$L['cfg_menu9'] = array('Меню #9<br />{PHP.cfg.menu9} во всех файлах .tpl', ' ');
+$L['cfg_menu1'] = 'Меню #1<br />{PHP.cfg.menu1} во всех файлах .tpl';
+$L['cfg_menu1_hint'] = ' ';
+$L['cfg_menu2'] = 'Меню #2<br />{PHP.cfg.menu2} во всех файлах .tpl';
+$L['cfg_menu2_hint'] = ' ';
+$L['cfg_menu3'] = 'Меню #3<br />{PHP.cfg.menu3} во всех файлах .tpl';
+$L['cfg_menu3_hint'] = ' ';
+$L['cfg_menu4'] = 'Меню #4<br />{PHP.cfg.menu4} во всех файлах .tpl';
+$L['cfg_menu4_hint'] = ' ';
+$L['cfg_menu5'] = 'Меню #5<br />{PHP.cfg.menu5} во всех файлах .tpl';
+$L['cfg_menu5_hint'] = ' ';
+$L['cfg_menu6'] = 'Меню #6<br />{PHP.cfg.menu6} во всех файлах .tpl';
+$L['cfg_menu6_hint'] = ' ';
+$L['cfg_menu7'] = 'Меню #7<br />{PHP.cfg.menu7} во всех файлах .tpl';
+$L['cfg_menu7_hint'] = ' ';
+$L['cfg_menu8'] = 'Меню #8<br />{PHP.cfg.menu8} во всех файлах .tpl';
+$L['cfg_menu8_hint'] = ' ';
+$L['cfg_menu9'] = 'Меню #9<br />{PHP.cfg.menu9} во всех файлах .tpl';
+$L['cfg_menu9_hint'] = ' ';
 
-$L['cfg_freetext1'] = array('Текст #1<br />{PHP.cfg.freetext1} во всех файлах .tpl', ' ');
-$L['cfg_freetext2'] = array('Текст #2<br />{PHP.cfg.freetext2} во всех файлах .tpl', ' ');
-$L['cfg_freetext3'] = array('Текст #3<br />{PHP.cfg.freetext3} во всех файлах .tpl', ' ');
-$L['cfg_freetext4'] = array('Текст #4<br />{PHP.cfg.freetext4} во всех файлах .tpl', ' ');
-$L['cfg_freetext5'] = array('Текст #5<br />{PHP.cfg.freetext5} во всех файлах .tpl', ' ');
-$L['cfg_freetext6'] = array('Текст #6<br />{PHP.cfg.freetext6} во всех файлах .tpl', ' ');
-$L['cfg_freetext7'] = array('Текст #7<br />{PHP.cfg.freetext7} во всех файлах .tpl', ' ');
-$L['cfg_freetext8'] = array('Текст #8<br />{PHP.cfg.freetext8} во всех файлах .tpl', ' ');
-$L['cfg_freetext9'] = array('Текст #9<br />{PHP.cfg.freetext9} во всех файлах .tpl', ' ');
+$L['cfg_freetext1'] = 'Текст #1<br />{PHP.cfg.freetext1} во всех файлах .tpl';
+$L['cfg_freetext1_hint'] = ' ';
+$L['cfg_freetext2'] = 'Текст #2<br />{PHP.cfg.freetext2} во всех файлах .tpl';
+$L['cfg_freetext2_hint'] = ' ';
+$L['cfg_freetext3'] = 'Текст #3<br />{PHP.cfg.freetext3} во всех файлах .tpl';
+$L['cfg_freetext3_hint'] = ' ';
+$L['cfg_freetext4'] = 'Текст #4<br />{PHP.cfg.freetext4} во всех файлах .tpl';
+$L['cfg_freetext4_hint'] = ' ';
+$L['cfg_freetext5'] = 'Текст #5<br />{PHP.cfg.freetext5} во всех файлах .tpl';
+$L['cfg_freetext5_hint'] = ' ';
+$L['cfg_freetext6'] = 'Текст #6<br />{PHP.cfg.freetext6} во всех файлах .tpl';
+$L['cfg_freetext6_hint'] = ' ';
+$L['cfg_freetext7'] = 'Текст #7<br />{PHP.cfg.freetext7} во всех файлах .tpl';
+$L['cfg_freetext7_hint'] = ' ';
+$L['cfg_freetext8'] = 'Текст #8<br />{PHP.cfg.freetext8} во всех файлах .tpl';
+$L['cfg_freetext8_hint'] = ' ';
+$L['cfg_freetext9'] = 'Текст #9<br />{PHP.cfg.freetext9} во всех файлах .tpl';
+$L['cfg_freetext9_hint'] = ' ';
 
 /**
  * Config Section
  * Performance Subsection
  */
-$L['cfg_gzip'] = array('Gzip', 'Gzip-сжатие для исходящего HTML-кода. Не включайте эту опцию, если ваш сервер уже применяет Gzip к страницам сайта. Проверьте, включено ли Gzip-сжатие на вашем сайте, с помощью этого инструмента: <a href="http://www.whatsmyip.org/http-compression-test/">HTTP Compression Test</a>');
-$L['cfg_headrc_consolidate'] = array('Объединять ресурсы header/footer (JS/CSS)');
-$L['cfg_headrc_minify'] = array('Минифицировать объединённые JS/CSS');
-$L['cfg_jquery_cdn'] = array('Использовать jQuery из CDN по этой ссылке', 'Пример: https://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js');
-$L['cfg_jquery'] = array('Включить jQuery', ' ');
-$L['cfg_turnajax'] = array('Включить Ajax', 'Работает только если jQuery включен');
+$L['cfg_gzip'] = 'Gzip';
+$L['cfg_gzip_hint'] = 'Gzip-сжатие для исходящего HTML-кода. Не включайте эту опцию, если ваш сервер уже применяет Gzip к страницам сайта. Проверьте, включено ли Gzip-сжатие на вашем сайте, с помощью этого инструмента: <a href="http://www.whatsmyip.org/http-compression-test/">HTTP Compression Test</a>';
+$L['cfg_headrc_consolidate'] = 'Объединять ресурсы header/footer (JS/CSS)';
+$L['cfg_headrc_minify'] = 'Минифицировать объединённые JS/CSS';
+$L['cfg_jquery_cdn'] = 'Использовать jQuery из CDN по этой ссылке';
+$L['cfg_jquery_cdn_hint'] = 'Пример: https://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js';
+$L['cfg_jquery'] = 'Включить jQuery';
+$L['cfg_jquery_hint'] = ' ';
+$L['cfg_turnajax'] = 'Включить Ajax';
+$L['cfg_turnajax_hint'] = 'Работает только если jQuery включен';
 
 /**
  * Config Section
  * Security Subsection
  */
-$L['cfg_captchamain'] = array('Captcha по умолчанию');
-$L['cfg_captcharandom'] = array('Случайный выбор captcha');
-$L['cfg_hashfunc'] = array('Функция хеширования по умолчанию', 'Используется для хеширования паролей');
-$L['cfg_referercheck'] = array('Проверка referer для форм', 'Предотвращает междоменный постинг');
-$L['cfg_shieldenabled'] = array('Включить защиту', 'Защита против спама и хаммеринга');
-$L['cfg_shieldtadjust'] = array('Настройка таймеров защиты (в %)', 'Чем выше, тем сильнее защита против спама');
-$L['cfg_shieldzhammer'] = array('Анти-хаммер после * хитов', 'Чем меньше, тем короче срок автоблокировки пользователя');
-$L['cfg_devmode'] = array('Режим отладки', 'Только для отладки под localhost');
-$L['cfg_maintenance'] = array('Режим обслуживания', 'Доступа к сайту разрешен только администраторам');
-$L['cfg_maintenancereason'] = array('Причина режима обслуживания', 'Коротко опишите почему сайт находится в режиме обслуживания');
+$L['cfg_captchamain'] = 'Captcha по умолчанию';
+$L['cfg_captcharandom'] = 'Случайный выбор captcha';
+$L['cfg_hashfunc'] = 'Функция хеширования по умолчанию';
+$L['cfg_hashfunc_hint'] = 'Используется для хеширования паролей';
+$L['cfg_referercheck'] = 'Проверка referer для форм';
+$L['cfg_referercheck_hint'] = 'Предотвращает междоменный постинг';
+$L['cfg_shieldenabled'] = 'Включить защиту';
+$L['cfg_shieldenabled_hint'] = 'Защита против спама и хаммеринга';
+$L['cfg_shieldtadjust'] = 'Настройка таймеров защиты (в %)';
+$L['cfg_shieldtadjust_hint'] = 'Чем выше, тем сильнее защита против спама';
+$L['cfg_shieldzhammer'] = 'Анти-хаммер после * хитов';
+$L['cfg_shieldzhammer_hint'] = 'Чем меньше, тем короче срок автоблокировки пользователя';
+$L['cfg_devmode'] = 'Режим отладки';
+$L['cfg_devmode_hint'] = 'Только для отладки под localhost';
+$L['cfg_maintenance'] = 'Режим обслуживания';
+$L['cfg_maintenance_hint'] = 'Доступа к сайту разрешен только администраторам';
+$L['cfg_maintenancereason'] = 'Причина режима обслуживания';
+$L['cfg_maintenancereason_hint'] = 'Коротко опишите почему сайт находится в режиме обслуживания';
 
 /**
  * Config Section
  * Sessions Subsection
  */
-$L['cfg_cookiedomain'] = array('Домен для cookies', 'По умолчанию пусто');
-$L['cfg_cookielifetime'] = array('Срок действия cookies', 'В секундах');
-$L['cfg_cookiepath'] = array('Путь для cookies', 'По умолчанию пусто');
-$L['cfg_forcerememberme'] = array('Зафиксировать &quot;запомнить меня&quot;', 'Используйте на мультидоменных сайтах или при случайных выходах из системы');
-$L['cfg_timedout'] = array('Задержка ожидания в секундах', 'По истечении данного срока пользователь считается покинувшим сайт');
-$L['cfg_redirbkonlogin'] = array('Возврат после авторизации', 'Вернуться на страницу, посещённую перед авторизацией');
-$L['cfg_redirbkonlogout'] = array('Возврат после выхода', 'Вернуться на страницу, посещённую перед выходом');
+$L['cfg_cookiedomain'] = 'Домен для cookies';
+$L['cfg_cookiedomain_hint'] = 'По умолчанию пусто';
+$L['cfg_cookielifetime'] = 'Срок действия cookies';
+$L['cfg_cookielifetime_hint'] = 'В секундах';
+$L['cfg_cookiepath'] = 'Путь для cookies';
+$L['cfg_cookiepath_hint'] = 'По умолчанию пусто';
+$L['cfg_forcerememberme'] = 'Зафиксировать &quot;запомнить меня&quot;';
+$L['cfg_forcerememberme_hint'] = 'Используйте на мультидоменных сайтах или при случайных выходах из системы';
+$L['cfg_timedout'] = 'Задержка ожидания в секундах';
+$L['cfg_timedout_hint'] = 'По истечении данного срока пользователь считается покинувшим сайт';
+$L['cfg_redirbkonlogin'] = 'Возврат после авторизации';
+$L['cfg_redirbkonlogin_hint'] = 'Вернуться на страницу, посещённую перед авторизацией';
+$L['cfg_redirbkonlogout'] = 'Возврат после выхода';
+$L['cfg_redirbkonlogout_hint'] = 'Вернуться на страницу, посещённую перед выходом';
 
 /**
  * Config Section
  * Themes Subsection
  */
-$L['cfg_charset'] = array('Набор символов (кодовая страница)', ' ');
-$L['cfg_disablesysinfos'] = array('Отключить время создания страницы', '(в footer.tpl)');
-$L['cfg_doctypeid'] = array('Тип документа', '&lt;!DOCTYPE&gt; в HTML-разметке');
-$L['cfg_forcedefaulttheme'] = array('Принудительная установка темы по умолчанию для всех пользователей', ' ');
-$L['cfg_homebreadcrumb'] = array('Ссылка на главную страницу в &laquo;навигационной цепочке&raquo;', 'Установить ссылку на главную страницу в начале &laquo;навигационной цепочки&raquo;');
-$L['cfg_keepcrbottom'] = array('Оставить копирайт в тэге {FOOTER_BOTTOMLINE}', '(в footer.tpl)');
-$L['cfg_metakeywords'] = array('Ключевые слова', '(через запятую)');
-$L['cfg_msg_separate'] = array('Показывать сообщения отдельно для каждого источника', '');
-$L['cfg_separator'] = array('Разделитель', '(используется в навигационной цепочке и т .д.)');
-$L['cfg_showsqlstats'] = array('Показывать статистику SQL-запросов', '(в footer.tpl)');
+$L['cfg_charset'] = 'Набор символов (кодовая страница)';
+$L['cfg_charset_hint'] = ' ';
+$L['cfg_disablesysinfos'] = 'Отключить время создания страницы';
+$L['cfg_disablesysinfos_hint'] = '(в footer.tpl)';
+$L['cfg_doctypeid'] = 'Тип документа';
+$L['cfg_doctypeid_hint'] = '&lt;!DOCTYPE&gt; в HTML-разметке';
+$L['cfg_forcedefaulttheme'] = 'Принудительная установка темы по умолчанию для всех пользователей';
+$L['cfg_forcedefaulttheme_hint'] = ' ';
+$L['cfg_homebreadcrumb'] = 'Ссылка на главную страницу в &laquo;навигационной цепочке&raquo;';
+$L['cfg_homebreadcrumb_hint'] = 'Установить ссылку на главную страницу в начале &laquo;навигационной цепочки&raquo;';
+$L['cfg_keepcrbottom'] = 'Оставить копирайт в тэге {FOOTER_BOTTOMLINE}';
+$L['cfg_keepcrbottom_hint'] = '(в footer.tpl)';
+$L['cfg_metakeywords'] = 'Ключевые слова';
+$L['cfg_metakeywords_hint'] = '(через запятую)';
+$L['cfg_msg_separate'] = 'Показывать сообщения отдельно для каждого источника';
+$L['cfg_msg_separate_hint'] = '';
+$L['cfg_separator'] = 'Разделитель';
+$L['cfg_separator_hint'] = '(используется в навигационной цепочке и т .д.)';
+$L['cfg_showsqlstats'] = 'Показывать статистику SQL-запросов';
+$L['cfg_showsqlstats_hint'] = '(в footer.tpl)';
 
 /**
  * Config Section
  * Title Subsection
  */
-$L['cfg_maintitle'] = array('Название сайта', 'Обязательно');
-$L['cfg_subtitle'] = array('Описание сайта', 'Необязательно');
-$L['cfg_title_header'] = array('Основной заголовок', 'Опции: {MAINTITLE}, {DESCRIPTION}, {SUBTITLE}');
-$L['cfg_title_header_index'] = array('Заголовок главной страницы', 'Опции: {MAINTITLE}, {DESCRIPTION}, {SUBTITLE}');
-$L['cfg_title_users_details'] = array('Пользователи - просмотр профиля', 'Опции: {USER}, {NAME}');
-$L['cfg_subject_mail'] = array('Заголовок email', 'Опции: {SITE_TITLE}, {SITE_DESCRIPTION}, {MAIL_SUBJECT}');
-$L['cfg_body_mail'] = array('Текст email', 'Опции: {SITE_TITLE}, {SITE_DESCRIPTION}, {SITE_URL}, {ADMIN_EMAIL}, {MAIL_BODY}, {MAIL_SUBJECT}');
+$L['cfg_maintitle'] = 'Название сайта';
+$L['cfg_maintitle_hint'] = 'Обязательно';
+$L['cfg_subtitle'] = 'Описание сайта';
+$L['cfg_subtitle_hint'] = 'Необязательно';
+$L['cfg_title_header'] = 'Основной заголовок';
+$L['cfg_title_header_hint'] = 'Опции: {MAINTITLE}, {DESCRIPTION}, {SUBTITLE}';
+$L['cfg_title_header_index'] = 'Заголовок главной страницы';
+$L['cfg_title_header_index_hint'] = 'Опции: {MAINTITLE}, {DESCRIPTION}, {SUBTITLE}';
+$L['cfg_title_users_details'] = 'Пользователи - просмотр профиля';
+$L['cfg_title_users_details_hint'] = 'Опции: {USER}, {NAME}';
+$L['cfg_subject_mail'] = 'Заголовок email';
+$L['cfg_subject_mail_hint'] = 'Опции: {SITE_TITLE}, {SITE_DESCRIPTION}, {MAIL_SUBJECT}';
+$L['cfg_body_mail'] = 'Текст email';
+$L['cfg_body_mail_hint'] = 'Опции: {SITE_TITLE}, {SITE_DESCRIPTION}, {SITE_URL}, {ADMIN_EMAIL}, {MAIL_BODY}, {MAIL_SUBJECT}';
 
 /**
  * Config Section
  * Common strings
  */
-$L['cfg_css'] = array('Подключить CSS модуля/плагина');
-$L['cfg_editor'] = array('Редактор разметки', '');
-$L['cfg_markup'] = array('Включить разметку', 'Включает HTML/BBcode или другой парсинг, установленный в вашей системе');
+$L['cfg_css'] = 'Подключить CSS модуля/плагина';
+$L['cfg_editor'] = 'Редактор разметки';
+$L['cfg_editor_hint'] = '';
+$L['cfg_markup'] = 'Включить разметку';
+$L['cfg_markup_hint'] = 'Включает HTML/BBcode или другой парсинг, установленный в вашей системе';
 
 /**
  * Extension management
@@ -250,25 +327,25 @@ $L['ext_updating'] = 'Обновление {$type} &quot;{$name}&quot;';
 /**
  * Extension categories
  */
-$L['ext_cat']['administration-management'] = 'Администрирование и управление';
-$L['ext_cat']['commerce'] = 'Электронная коммерция';
-$L['ext_cat']['community-social'] = 'Сообщества и социальное';
-$L['ext_cat']['customization-i18n'] = 'Тонкая настройка и I18n';
-$L['ext_cat']['data-apis'] = 'Потоки данных и API';
-$L['ext_cat']['development-maintenance'] = 'Разработка и поддержка';
-$L['ext_cat']['editor-parser'] = 'Редакторы и разметка';
-$L['ext_cat']['files-media'] = 'Файлы и медиа';
-$L['ext_cat']['forms-feedback'] = 'Формы и обратная связь';
-$L['ext_cat']['gaming-clans'] = 'Игры и кланы';
-$L['ext_cat']['intranet-groupware'] = 'Корпоративный сектор';
-$L['ext_cat']['misc-ext'] = 'Прочее';
-$L['ext_cat']['mobile-geolocation'] = 'Мобильность и геолокация';
-$L['ext_cat']['navigation-structure'] = 'Навигация и структура';
-$L['ext_cat']['performance-seo'] = 'Производительность и SEO';
-$L['ext_cat']['publications-events'] = 'Публикации и события';
-$L['ext_cat']['security-authentication'] = 'Безопасность и аутентификация';
-$L['ext_cat']['utilities-tools'] = 'Инструменты';
-$L['ext_cat']['post-install'] = 'Пост-установочные скрипты';
+$L['ext_cat_administration-management'] = 'Администрирование и управление';
+$L['ext_cat_commerce'] = 'Электронная коммерция';
+$L['ext_cat_community-social'] = 'Сообщества и социальное';
+$L['ext_cat_customization-i18n'] = 'Тонкая настройка и I18n';
+$L['ext_cat_data-apis'] = 'Потоки данных и API';
+$L['ext_cat_development-maintenance'] = 'Разработка и поддержка';
+$L['ext_cat_editor-parser'] = 'Редакторы и разметка';
+$L['ext_cat_files-media'] = 'Файлы и медиа';
+$L['ext_cat_forms-feedback'] = 'Формы и обратная связь';
+$L['ext_cat_gaming-clans'] = 'Игры и кланы';
+$L['ext_cat_intranet-groupware'] = 'Корпоративный сектор';
+$L['ext_cat_misc-ext'] = 'Прочее';
+$L['ext_cat_mobile-geolocation'] = 'Мобильность и геолокация';
+$L['ext_cat_navigation-structure'] = 'Навигация и структура';
+$L['ext_cat_performance-seo'] = 'Производительность и SEO';
+$L['ext_cat_publications-events'] = 'Публикации и события';
+$L['ext_cat_security-authentication'] = 'Безопасность и аутентификация';
+$L['ext_cat_utilities-tools'] = 'Инструменты';
+$L['ext_cat_post-install'] = 'Пост-установочные скрипты';
 
 /**
  * Structure Section
@@ -292,7 +369,7 @@ $L['adm_help_structure'] = 'Страницы категории &laquo;system&ra
  * Structure Section
  * Extrafields Subsection
  */
-$L['adm_extrafields_desc'] = 'Создание / правка экстраполей';
+$L['adm_extrafields_desc'] = 'Создание / правка экстраполей для хранения пользовательских данных';
 $L['adm_extrafields_all'] = 'Все таблицы';
 $L['adm_extrafields_table'] = 'Таблица';
 $L['adm_extrafields_help_notused'] = 'Не используется';
@@ -309,11 +386,25 @@ $L['adm_help_newtags'] = '<br /><br /><b>Новые тэги в tpl-файлах
  * Users Section
  */
 $L['adm_rightspergroup'] = 'Права групп';
-$L['adm_maxsizesingle'] = 'Максимальный размер одного файла в разделе &laquo;'.$L['PFS'].'&raquo; (Кб)';
-$L['adm_maxsizeallpfs'] = 'Максимальный размер всех файлов в разделе &laquo;'.$L['PFS'].'&raquo; (Кб)';
+$L['adm_maxsizesingle'] = 'Максимальный размер одного файла в разделе &laquo;'.$L['PFS'].'&raquo; (KiB)';
+$L['adm_maxsizeallpfs'] = 'Максимальный размер всех файлов в разделе &laquo;'.$L['PFS'].'&raquo; (KiB)';
 $L['adm_copyrightsfrom'] = 'Установить права как в группе';
 $L['adm_rights_maintenance'] = 'Разрешить авторизацию при включенном режиме обслуживания';
 $L['adm_skiprights'] = 'Пропустить права для этой группы';
+$L['adm_groups_name_empty'] = 'Название группы не должно быть пустым';
+$L['adm_groups_title_empty'] = 'Титул члена группы (заголовок) не должен быть пустым';
+$L['users_grp_5_title'] = 'Администраторы';
+$L['users_grp_5_desc'] = 'Администраторы и пользователи с максимальным уровнем доступа';
+$L['users_grp_6_title'] = 'Модераторы';
+$L['users_grp_6_desc'] = 'Контент-менеджеры и доверенные контрибьюторы';
+$L['users_grp_4_title'] = 'Пользователи';
+$L['users_grp_4_desc'] = 'Зарегистрированные пользователи с базовым уровнем доступа';
+$L['users_grp_3_title'] = 'Забанены';
+$L['users_grp_3_desc'] = 'Заблокированные пользовательские учетные записи';
+$L['users_grp_2_title'] = 'Неактивированные';
+$L['users_grp_2_desc'] = 'Учетные записи с незавершенной процедурой регистрации';
+$L['users_grp_1_title'] = 'Посетители';
+$L['users_grp_1_desc'] = 'Незарегистрированные и неавторизованные пользователи';
 
 /**
  * Plug Section
@@ -368,8 +459,10 @@ $L['adm_listisempty'] = 'Элементы списка отсутствуют';
  */
 $L['adm_delcacheitem'] = 'Элемент кэша удален';
 $L['adm_internalcache'] = 'Внутренний кэш';
+$L['adm_internalcache_desc'] = 'Кэш для временного хранения часто изменяемых объектов';
 $L['adm_purgeall_done'] = 'Кэш очищен полностью';
 $L['adm_diskcache'] = 'Дисковый кэш';
+$L['adm_diskcache_desc'] = 'Кэш для хранения сформированных данных в виде файлов';
 $L['adm_cache_showall'] = 'Отобразить все';
 
 /**
@@ -377,7 +470,9 @@ $L['adm_cache_showall'] = 'Отобразить все';
  * Log Subsection
  */
 $L['adm_log'] = 'Системный протокол';
+$L['adm_log_desc'] = 'Информация об активности пользователей на сайте';
 $L['adm_infos'] = 'Информация';
+$L['adm_infos_desc'] = 'Версии PHP/Zend, ОС, часовые пояса сервера';
 $L['adm_versiondclocks'] = 'Версии и таймеры';
 $L['adm_checkcorethemes'] = 'Проверить файлы ядра и скинов';
 $L['adm_checkcorenow'] = 'Проверить файлы ядра!';
@@ -396,15 +491,14 @@ $L['adm_ref_prune'] = 'Очищено';
 $L['adm_phpver'] = 'Версия PHP';
 $L['adm_zendver'] = 'Версия Zend';
 $L['adm_interface'] = 'Интерфейс веб-сервер / PHP';
+$L['adm_cachedrivers'] = 'Драйверы кеша';
 $L['adm_os'] = 'Операционная система';
 $L['adm_clocks'] = 'Таймеры';
 $L['adm_time1'] = '#1 : Чистое время сервера';
 $L['adm_time2'] = '#2 : Время относительно GMT, возвращаемое сервером';
 $L['adm_time3'] = '#3 : Время относительно GMT + сдвиг сервера (Cotonti reference)';
 $L['adm_time4'] = '#4 : Ваше местное время из личных установок';
-$L['adm_help_versions'] = 'Измените часовой пояс сервера для корректной установки таймера #3.<br />
-Таймер #4 зависит от установок часового пояса в вашем профиле.<br />
-Таймеры #1 и #2 игнорируются системой.';
+$L['adm_help_versions'] = "Измените часовой пояс сервера для корректной установки таймера #3.<br />\nТаймер #4 зависит от установок часового пояса в вашем профиле.<br />\nТаймеры #1 и #2 игнорируются системой.";
 
 /**
  * Common Entries
@@ -468,5 +562,3 @@ $L['adm_help_cache'] = 'Недоступно';
 $L['adm_help_check1'] = 'Недоступно';
 $L['adm_help_check2'] = 'Недоступно';
 $L['adm_help_config']= 'Недоступно';
-
-?>

@@ -97,6 +97,7 @@ $adminpath[] = array(cot_url('admin', 'm=users'), $L['Users']);
 $adminpath[] = array(cot_url('admin', 'm=users&n=edit&g='.$g), $cot_groups[$g]['name']);
 $adminpath[] = array(cot_url('admin', 'm=rights&g='.$g), $L['Rights']);
 ($advanced) && $adminpath[] = array(cot_url('admin', 'm=rights&g='.$g.'&advanced=1'), $L['More']);
+$adminsubtitle = $L['Rights'];
 
 $adv_columns = ($advanced) ? 8 : 4;
 
@@ -138,7 +139,7 @@ while ($row = $sql->fetch())
 		$title = $L['Messages'];
 	}
 	else
-	{	
+	{
 		$link = cot_url('admin', "m=extensions&a=details&mod=".$row['auth_code']);
 		$title = $cot_modules[$row['auth_code']]['title'];
 		$ico = $cfg['modules_dir'] . '/' . $row['auth_code'] . '/' . $row['auth_code'] . '.png';
@@ -272,7 +273,7 @@ function cot_rights_parseline($row, $title, $link, $ico = '')
 		$t->assign('ADMIN_RIGHTS_ROW_PRESERVE', $preserve);
 	}
 	$ico = (!empty($ico) && file_exists($ico)) ? $ico : '';
-	
+
 	$t->assign(array(
 		'ADMIN_RIGHTS_ROW_AUTH_CODE' => $row['auth_code'],
 		'ADMIN_RIGHTS_ROW_TITLE' => $title,
@@ -283,5 +284,3 @@ function cot_rights_parseline($row, $title, $link, $ico = '')
 	));
 	$t->parse('MAIN.RIGHTS_SECTION.RIGHTS_ROW');
 }
-
-?>

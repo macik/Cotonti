@@ -25,6 +25,7 @@ require_once cot_incfile('auth');
 $t = new XTemplate(cot_tplfile('admin.extensions', 'core'));
 
 $adminpath[] = array (cot_url('admin', 'm=extensions'), $L['Extensions']);
+$adminsubtitle = $L['Extensions'];
 
 $pl = cot_import('pl', 'G', 'ALP');
 $mod = cot_import('mod', 'G', 'ALP');
@@ -85,7 +86,7 @@ switch($a)
 		{
 			$old_ext_format = false;
 			$info = cot_infoget($ext_info, 'COT_EXT');
-			
+
 			if (!$info && cot_plugin_active('genoa'))
 			{
 				// Try to load old format info
@@ -358,7 +359,9 @@ switch($a)
 			}
 		}
 
+		$L['info_name'] = '';
 		$L['info_desc'] = '';
+		$L['info_notes'] = '';
 		if (file_exists(cot_langfile($code, $type)))
 		{
 			include cot_langfile($code, $type);
@@ -521,7 +524,20 @@ switch($a)
 	/* =============== */
 		// Params to show only installed extensions
 		$only_installed = cot_import('inst', 'G', 'BOL');
-		$only_installed_urlp = $only_installed ? '&inst=1' : '';
+		if ($cfg['default_show_installed'])
+		{
+			if (is_null($only_installed))
+			{
+				$only_installed = true;
+			}
+			$only_installed_urlp = $only_installed ? '' : '&inst=0';
+			$only_installed_toggle = $only_installed ? '&inst=0' : '';
+		}
+		else
+		{
+			$only_installed_urlp = $only_installed ? '&inst=1' : '';
+			$only_installed_toggle = $only_installed ? '' : '&inst=1';
+		}
 		$sort_urlp = $sort == 'cat' ? '&sort=cat' : '';
 
 		// Filter/sort tags
@@ -532,7 +548,7 @@ switch($a)
 			'ADMIN_EXTENSIONS_SORT_CAT_URL' => cot_url('admin', 'm=extensions&sort=cat'.$only_installed_urlp),
 			'ADMIN_EXTENSIONS_SORT_CAT_SEL' => $sort == 'cat',
 			'ADMIN_EXTENSIONS_ALL_EXTENSIONS_URL' => cot_url('admin', 'm=extensions'.$sort_urlp),
-			'ADMIN_EXTENSIONS_ONLY_INSTALLED_URL' => cot_url('admin', 'm=extensions'.$sort_urlp.'&inst=1'),
+			'ADMIN_EXTENSIONS_ONLY_INSTALLED_URL' => cot_url('admin', 'm=extensions'.$sort_urlp.$only_installed_toggle),
 			'ADMIN_EXTENSIONS_ONLY_INSTALLED_SEL' => $only_installed
 		));
 
@@ -630,7 +646,7 @@ switch($a)
 				if ($sort == 'cat' && $type == 'plug' && $prev_cat != $info['Category'])
 				{
 					// Render category heading
-					$t->assign('ADMIN_EXTENSIONS_CAT_TITLE', $L['ext_cat'][$info['Category']]);
+					$t->assign('ADMIN_EXTENSIONS_CAT_TITLE', $L['ext_cat_' . $info['Category']]);
 					$t->parse('MAIN.DEFAULT.SECTION.ROW.ROW_CAT');
 					// Assign a new one
 					$prev_cat = $info['Category'];
@@ -700,6 +716,7 @@ switch($a)
 
 					$installed_ver = $db->query("SELECT ct_version FROM $db_core WHERE ct_code = '$code'")->fetchColumn();
 
+					$L['info_name'] = '';
 					$L['info_desc'] = '';
 					if (file_exists(cot_langfile($code, $type)))
 					{
@@ -708,7 +725,7 @@ switch($a)
 
 					$t->assign(array(
 						'ADMIN_EXTENSIONS_DETAILS_URL' => cot_url('admin', "m=extensions&a=details&$arg=$code"),
-						'ADMIN_EXTENSIONS_NAME' => $info['Name'],
+						'ADMIN_EXTENSIONS_NAME' => empty($L['info_name']) ? $info['Name'] : $L['info_name'],
 						'ADMIN_EXTENSIONS_TYPE' => $type == 'module' ? $L['Module'] : $L['Plugin'],
 						'ADMIN_EXTENSIONS_CODE_X' => $code,
 						'ADMIN_EXTENSIONS_DESCRIPTION' => empty($L['info_desc']) ? $info['Description'] : $L['info_desc'],
@@ -763,5 +780,3 @@ foreach (cot_getextplugins('admin.extensions.tags') as $pl)
 /* ===== */
 $t->parse('MAIN');
 $adminmain = $t->text('MAIN');
-
-?>

@@ -308,6 +308,7 @@ $L['Today'] = 'Today';
 $L['Tool'] = 'Tool';
 $L['Tools'] = 'Tools';
 $L['Total'] = 'Total';
+$L['Topic'] = 'Topic';
 $L['TPL'] = 'TPL';
 $L['Type'] = 'Type';
 $L['Unfold'] = 'Unfold';
@@ -346,29 +347,29 @@ $L['YIM'] = 'Yahoo Messenger';
  * cot_declension arrays
  */
 
-$Ls['Guests'] = array('guests','guest');
-$Ls['Members'] = array('members','member');
-$Ls['Pages'] = array('pages','page');
-$Ls['Times'] = array('times','time');
+$Ls['Guests'] = "guests,guest";
+$Ls['Members'] = "members,member";
+$Ls['Pages'] = "pages,page";
+$Ls['Times'] = "times,time";
 
-$Ls['Milliseconds'] = array('ms', 'ms');
-$Ls['Seconds'] = array('seconds','second');
-$Ls['Minutes'] = array('minutes','minute');
-$Ls['Hours'] = array('hours','hour');
-$Ls['Days'] = array('days','day');
-$Ls['Weeks'] = array('weeks','week');
-$Ls['Months'] = array('months','month');
-$Ls['Years'] = array('years','year');
+$Ls['Milliseconds'] = "ms,ms";
+$Ls['Seconds'] = "seconds,second";
+$Ls['Minutes'] = "minutes,minute";
+$Ls['Hours'] = "hours,hour";
+$Ls['Days'] = "days,day";
+$Ls['Weeks'] = "weeks,week";
+$Ls['Months'] = "months,month";
+$Ls['Years'] = "years,year";
 
-$Ls['Bytes'] = array('B', 'B');
-$Ls['Kilobytes'] = array('kB', 'kB');
-$Ls['Megabytes'] = array('MB', 'MB');
-$Ls['Gigabytes'] = array('GB', 'GB');
-$Ls['Terabytes'] = array('TB', 'TB');
-$Ls['Kibibytes'] = array('KiB', 'KiB');
-$Ls['Mebibytes'] = array('MiB', 'MiB');
-$Ls['Gibibytes'] = array('GiB', 'GiB');
-$Ls['Tebibytes'] = array('TiB', 'TiB');
+$Ls['Bytes'] = "B,B";
+$Ls['Kilobytes'] = "kB,kB";
+$Ls['Megabytes'] = "MB,MB";
+$Ls['Gigabytes'] = "GB,GB";
+$Ls['Terabytes'] = "TB,TB";
+$Ls['Kibibytes'] = "KiB,KiB";
+$Ls['Mebibytes'] = "MiB,MiB";
+$Ls['Gibibytes'] = "GiB,GiB";
+$Ls['Tebibytes'] = "TiB,TiB";
 
 /**
  * Date / Time formats
@@ -510,5 +511,3 @@ $L['captcha_verification_failed'] = 'Wrong bot protection code';
 
 $L['shield_title'] = 'Anti-hammering protection';
 $L['shield_protect'] = 'Shield protection activated, please retry in {$sec} seconds...<br />After this duration, you can refresh the current page to continue.<br />Last action was : {$action}';
-
-?>

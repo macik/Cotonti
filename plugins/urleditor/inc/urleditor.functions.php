@@ -53,7 +53,7 @@ function cot_apply_rwr()
 
 		if ($count == 1)
 		{
-			if (isset($structure['page'][$path[0]]))
+			if (isset($structure['page'][$path[0]]) || $path[0] == 'unvalidated' || $path[0] == 'saved_drafts')
 			{
 				// Is a category
 				$_GET['e'] = 'page';
@@ -63,6 +63,12 @@ function cot_apply_rwr()
 			{
 				// Is an extension
 				$_GET['e'] = $path[0];
+			}
+			elseif (in_array($path[0], array('register', 'profile', 'passrecover')))
+			{
+				// Special users shortcuts
+				$_GET['e'] = 'users';
+				$_GET['m'] = $path[0];
 			}
 			else
 			{
@@ -107,6 +113,21 @@ function cot_apply_rwr()
 				return;
 
 			}
+			elseif ($path[0] == 'rss')
+			{
+				// RSS
+				$_GET['e'] = 'rss';
+				$_GET['m'] = $path[1];
+				if ($count == 3)
+				{
+					is_numeric($path[2]) ? $_GET['id'] = $path[2] : $_GET['c'] = $path[2];
+				}
+				else
+				{
+					$_GET['c'] = $path[1];
+				}
+				return;
+			}
 			$last = $count - 1;
 			$ext = (isset($structure['page'][$path[0]])) ? 'page' : $path[0];
 			$_GET['e'] = $ext;
@@ -128,14 +149,15 @@ function cot_apply_rwr()
 				}
 				else
 				{
+					// Can be a cat or al, let the module decide
+					if ($count == 2 && !isset($structure[$ext][$_GET['c']]))
+						$_GET['c'] = $path[$last];
 					$_GET['al'] = $path[$last];
 				}
 			}
 		}
 	}
 }
-
-$cot_url_shortcuts['page']['c=rewbs&filter[foo][bar]=super&filter[boo][baz]=girl'] = 'rewbs/super-girl';
 
 /**
  * Transforms parameters into URL by following user-defined rules.
@@ -248,15 +270,23 @@ function cot_url_custom($name, $params = '', $tail = '', $htmlspecialchars_bypas
 	if (isset($params['l']) && isset($cfg['plugin']['i18n']['rewrite']) && $cfg['plugin']['i18n']['rewrite'])
 	{
 		// Add with slash at the beginning of the URL
-		$p = mb_strpos($url, '://');
-		if ($p === false)
+		$pos = strpos($url, $sys['site_uri']);
+		if ($sys['site_uri'] != '/' && $pos !== false)
 		{
-			$url = mb_strpos($url, '/') === 0 ? '/' . rawurlencode($params['l']) . $url : rawurlencode($params['l']) . '/' . $url;
+			$url = substr_replace($url, $sys['site_uri'] . rawurlencode($params['l']) .'/', $pos, mb_strlen($sys['site_uri']));
 		}
 		else
 		{
-			$p = mb_strpos($url, '/', $p + 3);
-			$url = $p === false ? $url . '/' . rawurlencode($params['l']) : mb_substr($url, 0, $p) . rawurlencode($params['l']) . '/' . mb_substr($url, $p + 1);
+			$p = mb_strpos($url, '://');
+			if ($p === false)
+			{
+				$url = mb_strpos($url, '/') === 0 ? '/' . rawurlencode($params['l']) . $url : rawurlencode($params['l']) . '/' . $url;
+			}
+			else
+			{
+				$p = mb_strpos($url, '/', $p + 3);
+				$url = $p === false ? $url . '/' . rawurlencode($params['l']) : mb_substr($url, 0, $p) . rawurlencode($params['l']) . '/' . mb_substr($url, $p + 1);
+			}
 		}
 		unset($params['l']);
 	}
@@ -314,18 +344,19 @@ function cot_url_catpath(&$params, $spec, $arg = 'c')
  */
 function cot_url_presets()
 {
-	global $cot_urleditor_presets, $cfg;
+	global $cfg;
 	$urleditor_presets = array();
-	foreach (glob('./datas/*.dat') as $filename)
+	$datfiles = glob('./datas/*.dat');
+	if ($datfiles) foreach ($datfiles as $filename)
 	{
 		if($filename != "./datas/urltrans.dat")
 		{
 			$urleditor_presets[] = basename($filename, ".dat");
 		}
 	}
-	foreach (glob($cfg['plugins_dir'] . "/urleditor/presets/*.dat") as $filename)
+	$datfiles = glob($cfg['plugins_dir'] . "/urleditor/presets/*.dat");
+	if ($datfiles) foreach ($datfiles as $filename)
 	{
-
 		$urleditor_presets[] = basename($filename, ".dat");
 	}
 	if (file_exists("./datas/urltrans.dat"))
@@ -349,5 +380,3 @@ function cot_url_username(&$params, $spec)
 	unset($params['m'], $params['id'], $params['u']);
 	return $name;
 }
-
-?>

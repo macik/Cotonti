@@ -24,6 +24,7 @@ require_once cot_incfile('hits', 'plug');
 $tt = new XTemplate(cot_tplfile('hits.admin', 'plug', true));
 
 $adminhelp = $L['adm_help_hits'];
+$adminsubtitle = $L['hits_hits'];
 
 $f = cot_import('f', 'G', 'TXT');
 $v = cot_import('v', 'G', 'TXT');
@@ -87,7 +88,7 @@ else
 		$sqlmax->closeCursor();
 	}
     $sql = $db->query("SELECT * FROM $db_stats WHERE stat_name LIKE '20%' ORDER BY stat_name DESC");
-    
+
 	if ($sql->rowCount() > 0 && $rowmax)
 	{
 		$max_date = $rowmax['stat_name'];
@@ -186,5 +187,3 @@ foreach (cot_getextplugins('hits.admin.tags') as $pl)
 
 $tt->parse('MAIN');
 $plugin_body = $tt->text('MAIN');
-
-?>
