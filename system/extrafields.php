@@ -118,7 +118,9 @@ function cot_build_extrafields($name, $extrafield, $data)
 			break;
 
 		case 'file':
-			$data_filepath = $cfg['extrafield_files_dir'].'/'.htmlspecialchars($data);
+			$extrafield['field_params'] = (!empty($extrafield['field_params'])) ? $extrafield['field_params'] : $cfg['extrafield_files_dir'];
+			$extrafield['field_params'] .= (mb_substr($extrafield['field_params'], -1) == '/') ? '' : '/';
+			$data_filepath = $extrafield['field_params'] . htmlspecialchars($data);
 			/* === Hook === */
 			foreach (cot_getextplugins('extrafields.build.file') as $pl)
 			{
@@ -154,7 +156,7 @@ function cot_import_extrafields($inputname, $extrafield, $source='P', $oldvalue=
 			if (!empty($extrafield['field_params']) && !is_null($import) && !preg_match($extrafield['field_params'], $import))
 			{
 				$L['field_pregmatch_' . $extrafield['field_name']] = (isset($L['field_pregmatch_' . $extrafield['field_name']])) ? $L['field_pregmatch_' . $extrafield['field_name']] : $L['field_pregmatch'];
-				cot_error('field_pregmatch_' . $extrafield['field_name'], $name);
+				cot_error('field_pregmatch_' . $extrafield['field_name'], $inputname);
 			}
 			break;
 
@@ -169,7 +171,7 @@ function cot_import_extrafields($inputname, $extrafield, $source='P', $oldvalue=
 				$max = (int) $max;
 				if ($import < $min || $import > $max)
 				{
-					cot_error('field_range_' . $extrafield['field_name'], $name);
+					cot_error('field_range_' . $extrafield['field_name'], $inputname);
 				}
 			}
 			break;
@@ -188,7 +190,7 @@ function cot_import_extrafields($inputname, $extrafield, $source='P', $oldvalue=
 				$max = (int) $max;
 				if ($import < $min || $import > $max)
 				{
-					cot_error('field_range_' . $extrafield['field_name'], $name);
+					cot_error('field_range_' . $extrafield['field_name'], $inputname);
 				}
 			}
 			break;
@@ -205,7 +207,7 @@ function cot_import_extrafields($inputname, $extrafield, $source='P', $oldvalue=
 			if (!is_null($import) && !in_array(trim($import), $opt_array))
 			{
 				$L['field_notinarray_' . $extrafield['field_name']] = (isset($L['field_notinarray_' . $extrafield['field_name']])) ? $L['field_notinarray_' . $extrafield['field_name']] : $L['field_notinarray'];
-				cot_error('field_notinarray_' . $extrafield['field_name'], $name);
+				cot_error('field_notinarray_' . $extrafield['field_name'], $inputname);
 			}
 			break;
 
@@ -220,7 +222,7 @@ function cot_import_extrafields($inputname, $extrafield, $source='P', $oldvalue=
 			$import = cot_import_date($inputname, true, false, $source);
 			if (!is_null($import) && ((int)$min > 0 || (int)$max > 0))
 			{
-				list($s_year, $s_month, $s_day, $s_hour, $s_minute) = explode('-', @date('Y-m-d-H-i', $utime));
+				list($s_year, $s_month, $s_day, $s_hour, $s_minute) = explode('-', @date('Y-m-d-H-i', $import));
 				if ($min > $s_year)
 				{
 					$import=mktime($s_hour, $s_minute, 0, $s_month, $s_day, $min);
@@ -257,7 +259,7 @@ function cot_import_extrafields($inputname, $extrafield, $source='P', $oldvalue=
 					if (!is_null($import[$k]) && !in_array($import[$k], $opt_array))
 					{
 						$L['field_notinarray_' . $extrafield['field_name']] = (isset($L['field_notinarray_' . $extrafield['field_name']])) ? $L['field_notinarray_' . $extrafield['field_name']] : $L['field_notinarray'];
-						cot_error('field_notinarray_' . $extrafield['field_name'], $name);
+						cot_error('field_notinarray_' . $extrafield['field_name'], $inputname);
 					}
 				}
 			}
@@ -332,7 +334,7 @@ function cot_import_extrafields($inputname, $extrafield, $source='P', $oldvalue=
 				}
 				else
 				{
-					cot_error('field_extension_' . $extrafield['field_name'], $name);
+					cot_error('field_extension_' . $extrafield['field_name'], $inputname);
 					$exfldsize[$extrafield['field_name']] = null;
 					$import = null;
 				}
@@ -361,7 +363,7 @@ function cot_import_extrafields($inputname, $extrafield, $source='P', $oldvalue=
 	{
 		$fname = (!empty($extrafield['field_description'])) ? $extrafield['field_description'] : $extrafield['field_name'];
 		$msg = (isset($L['field_required_' . $extrafield['field_name']])) ? 'field_required_' . $extrafield['field_name'] : $L['field_required'].': '.$fname;
-		cot_error($msg, $name);
+		cot_error($msg, $inputname);
 	}
 	return $import;
 }

@@ -488,6 +488,11 @@ $b = cot_import('b', 'G', 'ALP', 24);
 require_once cot_langfile('main', 'core');
 require_once cot_langfile('users', 'core');
 
+if(defined('COT_ADMIN'))
+{
+	require_once cot_langfile('admin', 'core');
+}
+
 /* ======== Theme / color scheme ======== */
 
 if (empty($cfg['themes_dir']))
@@ -529,26 +534,28 @@ $scheme = $usr['scheme'];
 // Resource strings
 require_once $cfg['system_dir'].'/resources.php';
 
+if(defined('COT_ADMIN'))
+{
+	require_once cot_incfile('admin', 'module', 'resources');
+}
+
 // Theme resources
 $sys['theme_resources'] = defined('COT_ADMIN') && !empty($cfg['admintheme'])
 	? "{$cfg['themes_dir']}/admin/{$cfg['admintheme']}/{$cfg['admintheme']}.php"
 	: "{$cfg['themes_dir']}/{$usr['theme']}/{$usr['theme']}.php";
 if (file_exists($sys['theme_resources']))
 {
-	// Get the keys for overriden strings first
-	list($l_diff, $r_diff) = cot_themerc_list($sys['theme_resources']);
-	// Include theme resources in the global scope
+	$L_tmp = $L;
+	$R_tmp = $R;
+	$L = array();
+	$R = array();
 	include $sys['theme_resources'];
 	// Save overridden strings in $theme_reload global
-	foreach ($l_diff as $key)
-	{
-		$theme_reload['L'][$key] = $L[$key];
-	}
-	foreach ($r_diff as $key)
-	{
-		$theme_reload['R'][$key] = $R[$key];
-	}
-	unset($l_diff, $r_diff);
+	$theme_reload['L'] = $L;
+	$theme_reload['R'] = $R;
+	$L = array_merge($L_tmp, $L);
+	$R = array_merge($R_tmp, $R);
+	unset($L_tmp, $R_tmp);
 }
 
 // Iconpack
