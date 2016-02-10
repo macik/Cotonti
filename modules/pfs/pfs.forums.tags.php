@@ -9,11 +9,9 @@ Tags=forums.editpost.tpl:{FORUMS_EDITPOST_MYPFS};forums.editpost.tpl:{FORUMS_POS
 /**
  * PFS links for forums
  *
- * @package pfs
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package PFS
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL.');
@@ -40,7 +38,7 @@ else
 	$pfs_tag = 'EDITPOST';
 }
 
-$pfs = cot_build_pfs($usr['id'], $pfs_src, $pfs_name, $L['Mypfs']);
-$pfs .= (cot_auth('pfs', 'a', 'A')) ? ' &nbsp; '.cot_build_pfs(0, $pfs_src, $pfs_name, $L['SFS']) : '';
+$pfs = cot_build_pfs($usr['id'], $pfs_src, $pfs_name, $L['Mypfs'], $sys['parser']);
+$pfs .= (cot_auth('pfs', 'a', 'A')) ? ' &nbsp; '.cot_build_pfs(0, $pfs_src, $pfs_name, $L['SFS'], $sys['parser']) : '';
 
 $t->assign('FORUMS_' . $pfs_tag . '_MYPFS', $pfs);

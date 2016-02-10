@@ -2,11 +2,9 @@
 /**
  * Russian Language File for the PM Module (pm.ru.lang.php)
  *
- * @package pm
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package PM
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL.');
@@ -46,8 +44,10 @@ $L['pm_notifytitle'] = 'Новое сообщение';
 $Ls['Privatemessages'] = "новое сообщение,новых сообщения,новых сообщений";
 $L['pm_replyto'] = 'Ответить данному пользователю';
 $L['pm_sendnew'] = 'Создать новое сообщение';
+$L['pm_sendpm'] = 'Отправить личное сообщение';
+$L['pm_sendmessagetohint'] = 'до 10 получателей, разделенных запятыми';
 $L['pm_sentbox'] = 'Отправленные сообщения';
-$L['pm_sentboxsubtitle'] = 'Отправленные, но еще не просмотренные получателем сообщения';
+$L['pm_sentboxsubtitle'] = 'Отправленные Вами личные сообщения';
 $L['pm_titletooshort'] = 'Заголовок слишком короткий либо отсутствует';
 $L['pm_toomanyrecipients'] = 'Ошибка: количество получателей не должно превышать %1\$s';
 $L['pm_wrongname'] = 'Ошибка в имени одного или более получателей: имя удалено из списка получателей';

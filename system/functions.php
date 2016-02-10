@@ -2,11 +2,9 @@
 /**
  * Main function library.
  *
- * @package Cotonti
- * @version 0.9.14
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD License
+ * @package API - Functions
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -33,12 +31,15 @@ $out = array();
 $plu = array();
 $sys = array();
 $usr = array();
+$env = array();
+$L = array();
+$R = array();
 
 $i = explode(' ', microtime());
 $sys['starttime'] = $i[1] + $i[0];
 
-$cfg['version'] = '0.9.14';
-$cfg['dbversion'] = '0.9.14';
+$cfg['version'] = '0.9.18';
+$cfg['dbversion'] = '0.9.18';
 
 // Set default file permissions if not present in config
 if (!isset($cfg['file_perms']))
@@ -54,6 +55,12 @@ if (!isset($cfg['dir_perms']))
  * Registry for captcha functions
  */
 $cot_captcha = array();
+
+/**
+ * Registry for extra fields
+ * @var array
+ */
+$cot_extrafields = null;
 
 /**
  * Registry for hash functions
@@ -79,6 +86,114 @@ $cot_parsers = array();
  * Parameters to be automatically appended to all URLs if present
  */
 $cot_url_appendix = array();
+
+/**
+ * Structure tree
+ * @var array
+ */
+$structure = array();
+
+/**
+ * Facade class to access key Cotonti globals regardless of scope
+ */
+class cot
+{
+	/**
+	 * Cotonti cache
+	 * @var Cache
+	 */
+	public static $cache;
+	/**
+	 * Cotonti configuration
+	 * @var array
+	 */
+	public static $cfg;
+	/**
+	 * Database connection
+	 * @var CotDB
+	 */
+	public static $db;
+	/**
+	 * Database table name prefix
+	 */
+	public static $db_x;
+	/**
+	 * Environment settings
+	 * @var array
+	 */
+	public static $env;
+	/**
+	 * Extra fields
+	 * @var array
+	 */
+	public static $extrafields;
+	/**
+	 * Language strings
+	 * @var array
+	 */
+	public static $L;
+	/**
+	 * Pre-rendered output strings
+	 * @var array
+	 */
+	public static $out;
+	/**
+	 * Resource strings
+	 * @var array
+	 */
+	public static $R;
+	/**
+	 * Structure tree and properties array
+	 * @var array
+	 */
+	public static $structure;
+	/**
+	 * Temporary system variables
+	 * @var array
+	 */
+	public static $sys;
+	/**
+	 * Current user object
+	 * @var array
+	 */
+	public static $usr;
+
+	/**
+	 * Initalizes static members. Call this function once all globals are defined.
+	 */
+	public static function init()
+	{
+		global $cache, $cfg, $cot_extrafields, $db, $db_x, $env, $L, $out, $R, $structure, $sys, $usr;
+		self::$cache       =& $cache;
+		self::$cfg         =& $cfg;
+		self::$db          =& $db;
+		self::$db_x        =& $db_x;
+		self::$env         =& $env;
+		self::$extrafields =& $cot_extrafields;
+		self::$L           =& $L;
+		self::$out         =& $out;
+		self::$R           =& $R;
+		self::$structure   =& $structure;
+		self::$sys         =& $sys;
+		self::$usr         =& $usr;
+
+		// Register core DB tables
+		$db->registerTable('auth');
+		$db->registerTable('cache');
+		$db->registerTable('cache_bindings');
+		$db->registerTable('core');
+		$db->registerTable('config');
+		$db->registerTable('groups');
+		$db->registerTable('groups_users');
+		$db->registerTable('logger');
+		$db->registerTable('online');
+		$db->registerTable('extra_fields');
+		$db->registerTable('plugins');
+		$db->registerTable('structure');
+		$db->registerTable('updates');
+		$db->registerTable('users');
+	}
+}
 
 /*
  * =========================== System Functions ===============================
@@ -229,19 +344,23 @@ function cot_import($name, $source, $filter, $maxlen = 0, $dieonerror = false, $
 {
 	global $cot_import_filters, $_PUT, $_PATCH, $_DELETE;
 
-	if ($_SERVER['REQUEST_METHOD'] == 'PUT' && is_null($_PUT))
+	if(isset($_SERVER['REQUEST_METHOD']))
 	{
-		parse_str(file_get_contents('php://input'), $_PUT);
-	}
-	elseif ($_SERVER['REQUEST_METHOD'] == 'PATCH' && is_null($_PATCH))
-	{
-		parse_str(file_get_contents('php://input'), $_PATCH);
-	}
-	elseif ($_SERVER['REQUEST_METHOD'] == 'DELETE' && is_null($_DELETE))
-	{
-		parse_str(file_get_contents('php://input'), $_DELETE);
+		if ($_SERVER['REQUEST_METHOD'] == 'PUT' && is_null($_PUT))
+		{
+			parse_str(file_get_contents('php://input'), $_PUT);
+		}
+		elseif ($_SERVER['REQUEST_METHOD'] == 'PATCH' && is_null($_PATCH))
+		{
+			parse_str(file_get_contents('php://input'), $_PATCH);
+		}
+		elseif ($_SERVER['REQUEST_METHOD'] == 'DELETE' && is_null($_DELETE))
+		{
+			parse_str(file_get_contents('php://input'), $_DELETE);
+		}
 	}
 
+	$v = NULL;
 	switch($source)
 	{
 		case 'G':
@@ -293,6 +412,17 @@ function cot_import($name, $source, $filter, $maxlen = 0, $dieonerror = false, $
 			cot_diefatal('Unknown source for a variable : <br />Name = '.$name.'<br />Source = '.$source.' ? (must be G, P, C or D)');
 			break;
 	}
+
+	if (is_array($v))
+	{
+		if ($filter == 'NOC') $filter = 'ARR';
+		if ($filter != 'ARR') return null;
+	}
+	else
+	{
+		if ($filter == 'ARR') return array();
+	}
+
 
 	if (MQGPC && ($source=='G' || $source=='P' || $source=='C') && $v != NULL && $filter != 'ARR')
 	{
@@ -453,132 +583,7 @@ function cot_import($name, $source, $filter, $maxlen = 0, $dieonerror = false, $
  * @param mixed $nameslist List of Variables names to import, can be:<br />
  * 				string 'name1, name2 , ...' - list of variable names comma separated.<br />
  * 				array('name1', 'name2', ...) - list of variable names only.
- * 				In that case $filter parameter nust be specified.<br />
- * 				array('name1' => 'FLT_TYPE1', 'name2' => 'FLT_TYPE2' ,...) - list of variable names with corresponding filter types
- * @param string $source Source type: G/GET, P/POST, C/COOKIE, R/REQUEST, PUT, DELETE or D/DIRECT (variable filtering)
- * @param array $origindata Array with origin data that will be extended with imported one
- * @param string $nameprefix Unified prefix for Variables names
- * @param string $filter Filter type, can be setted as:<br />
- * 				string 'FLT_TYPE' - single filter string for all Variables<br />
- * 				string 'FLT_TYPE1, FLT_TYPE2, ...' - comma separated string with filters corresponding to Variable names<br />
- * 				array('FLT_TYPE1', 'FLT_TYPE2', ...) - array of filters<br />
- * 			Overrides Filter types specified in $nameslist. If passed as list - number of Filters must be equal to count of
- * 			variables names in $nameslist.
- *
- * @param bool $arrayprefix Use $nameprefix for array fields
- * @param int $maxlen Length limit
- * @param bool $dieonerror Die with fatal error on wrong input
- * @param bool $buffer Try to load from input buffer (previously submitted) if current value is empty
- * @return boolean|array Returns combined array of data or FALSE if wrong parameters setted
- */
-function cot_import_list($nameslist=array(), $source='P', $origindata=array(), $nameprefix='', $filter=null, $arrayprefix=false, $maxlen=0, $dieonerror=false, $buffer=false)
-{
-	$direct = ($source == 'D' || $source == 'DIRECT');
-	$filter = empty($filter) ? null : $filter;
-	$nameslist = empty($nameslist) ? array() : $nameslist;
-	$origindata = !is_array($origindata) ? array() : $origindata;
-	if (!is_array($nameslist) && !empty($nameslist))
-	{
-		$nameslist = array_map('trim', explode(',',$nameslist));
-	}
-	if (!is_array($filter) && strpos($filter, ',') !== false)
-	{
-		$filter = array_map('trim', explode(',',$filter));
-	}
-	elseif (!is_array($filter) && !is_null($filter))
-	{
-		$filter = array_fill(0,sizeof($direct && empty($nameslist) ? $origindata : $nameslist),$filter);
-	}
-	if (!$direct && sizeof($nameslist) == 0)
-	{
-		return false; // no propper name list
-	}
-	elseif (sizeof($nameslist) == 0)
-	{ // direct by origin
-		if (is_null($filter)) return false;
-		foreach ($origindata as $key => $value) {
-			$origindata[$key] = cot_import($value, 'D', array_shift($filter), $maxlen, $dieonerror);
-		}
-	}
-	else
-	{ // namelist exists
-		$index = array_pop(array_keys($nameslist));
-		$types_not_defined = (is_numeric($index) && is_int($index ));
-		if ((is_array($filter) && sizeof($filter) != sizeof($nameslist))
-			|| ($types_not_defined && is_null($filter)))
-		{
-			return false; // can't rely on filter or no filter exists
-		}
-		elseif (is_array($filter))
-		{
-			$nameslist = array_combine($types_not_defined ? $nameslist : array_keys($nameslist), $filter);
-		}
-		foreach ($nameslist as $name => $filtertype) {
-			$origindata[($arrayprefix) ? $nameprefix.$name : $name] = cot_import($direct ? $origindata[$nameprefix.$name] : $nameprefix.$name, $source, $filtertype, $maxlen, $dieonerror, $buffer);
-		}
-	}
-	return $origindata;
-}
-
-/**
- * Imports table data from the outer world as indexed array of records imported by cot_import_list.
- * Used to import table editing data as one array ordered by index (IDs) of table lines (records).
- *
- * @param For parameters see `cot_import_list`:
- *
- * @return  boolean|array Returns indexed array of data or FALSE if wrong parameters setted
- *
- *	Example:
- *		cot_import_tabledata('name,age') returns somethinglike:
- *		array = (1 => array(
- *						'name' => 'John',
- *						'age'  => 18
- *					),
- *				 2 => array(
- *						'name' => 'Tom',
- *						'age'  => 24
- *					)
- *				)
- *
- */
-function cot_import_tabledata($nameslist=array(), $source='P', $nameprefix='', $origindata=array(), $maxlen=0, $dieonerror=false, $buffer=false)
-{
-	$imported_arrays = cot_import_list($nameslist, $source, $origindata, $nameprefix,'ARR', $maxlen, $dieonerror, $buffer);
-	if (!$imported_arrays) return false;
-	$result = array();
-	$na_data = array();
-	foreach ($imported_arrays as $name => $data)
-	{
-		if (!is_array($data))
-		{
-			$na_data[$name] = $data;
-			unset($imported_arrays[$name]);
-		}
-	}
-	foreach ($imported_arrays as $name => $data)
-	{
-		if (is_array($data))
-		{
-			foreach ($data as $index => $value)
-			{
-				$result[$index][$name] = $value;
-				foreach ($na_data as $k => $v) {
-					$result[$index][$k] = $v;
-				}
-			}
-		}
-	}
-	return $result;
-}
-
-/**
- * Imports data from the outer world by list of Variable names
- * Relies on `cot_import` function
- *
- * @param mixed $nameslist List of Variables names to import, can be:<br />
- * 				string 'name1, name2 , ...' - list of variable names comma separated.<br />
- * 				array('name1', 'name2', ...) - list of variable names only.
- 	* 				In that case $filter parameter nust be specified.<br />
+	* 				In that case $filter parameter nust be specified.<br />
  * 				array('name1' => 'TYPE1', 'name2' => 'TYPE2' ,...) - list of variable names with their filter types
  * @param string $source Source type: G/GET, P/POST, C/COOKIE, R/REQUEST, PUT, DELETE or D/DIRECT (variable filtering)
  * @param array $origindata Array with origin data that will be extended with imported one
@@ -627,8 +632,9 @@ function cot_import_list($nameslist=array(), $source='P', $origindata=array(), $
 	}
 	else
 	{ // namelist exists
-		$index = array_pop(array_keys($nameslist));
-		$types_not_defined = (is_numeric($index) && is_int($index ));
+		$index = array_keys($nameslist);
+		$index = array_pop($index);
+		$types_not_defined = (is_numeric($index) && is_int($index));
 		if ((is_array($filter) && sizeof($filter) != sizeof($nameslist))
 			|| ($types_not_defined && is_null($filter)))
 		{
@@ -658,6 +664,7 @@ function cot_import_tabledata($nameslist=array(), $source='P', $nameprefix='', $
 	$imported_arrays = cot_import_list($nameslist, $source, $origindata, $nameprefix,'ARR', $maxlen, $dieonerror, $buffer);
 	if (!$imported_arrays) return false;
 	$result = array();
+	$na_data = array();
 	foreach ($imported_arrays as $name => $data)
 	{
 		if (!is_array($data))
@@ -958,10 +965,11 @@ function cot_module_active($name)
 }
 
 /**
- * Standard SED output filters, adds XSS protection to forms
+ * Applies output filters, adds XSS protection to POST forms
+ * Note: XSS can be switched off by adding "xp-off" class to form
  *
- * @param unknown_type $output
- * @return unknown
+ * @param string $output
+ * @return string
  */
 function cot_outputfilters($output)
 {
@@ -972,7 +980,10 @@ function cot_outputfilters($output)
 	}
 	/* ==== */
 
-	$output = preg_replace('#<form\s+[^>]*method=["\']?post["\']?[^>]*>#i', '$0' . cot_xp(), $output);
+	$output = preg_replace_callback('#<form\s+[^>]*method=["\']?post["\']?[^>]*>#i',
+		function ($m) {
+			return $m[0] . (preg_match('/class\s*=\s*["\']?.*?[\s"\']xp-off[\s"\'].*?["\']?/i', $m[0]) ? '' : cot_xp());
+		}, $output);
 
 	return($output);
 }
@@ -1295,9 +1306,15 @@ function cot_structure_children($area, $cat, $allsublev = true,  $firstcat = tru
 {
 	global $structure, $db;
 
-	$mtch = $structure[$area][$cat]['path'].'.';
-	$mtchlen = mb_strlen($mtch);
-	$mtchlvl = mb_substr_count($mtch,".");
+	$mtch = '';
+	$mtchlen = $mtchlvl = 0;
+
+	if ($cat != '')
+	{
+		$mtch = $structure[$area][$cat]['path'] . '.';
+		$mtchlen = mb_strlen($mtch);
+		$mtchlvl = mb_substr_count($mtch, ".");
+	}
 
 	$catsub = array();
 	if ($cat != '' && $firstcat && (($userrights && cot_auth($area, $cat, 'R') || !$userrights)))
@@ -1310,7 +1327,7 @@ function cot_structure_children($area, $cat, $allsublev = true,  $firstcat = tru
 		if (($cat == '' || mb_substr($x['path'], 0, $mtchlen) == $mtch) && (($userrights && cot_auth($area, $i, 'R') || !$userrights)))
 		{
 			//$subcat = mb_substr($x['path'], $mtchlen + 1);
-			if ($cat == '' || $allsublev || (!$allsublev && mb_substr_count($x['path'],".") == $mtchlvl))
+			if ($allsublev || (!$allsublev && mb_substr_count($x['path'],".") == $mtchlvl))
 			{
 				$i = ($sqlprep) ? $db->prep($i) : $i;
 				$catsub[] = $i;
@@ -1770,8 +1787,16 @@ function cot_build_friendlynumber($number, $units, $levels = 1, $decimals = 0, $
 			else
 			{
 				// Last item gets decimals and rounding.
-				$pieces[] = cot_build_number($num, $decimals, $round). ' ' .
-							cot_declension($num, $expr, true, true);
+				if($decimals > 0)
+				{
+					$pieces[] = cot_build_number($num, $decimals, $round). ' ' .
+					cot_declension($num, $expr, true, true);
+				}
+				else
+				{
+					$pieces[] = floor($num). ' ' .
+					cot_declension(floor($num), $expr, true, true);
+				}
 				break;
 			}
 			if ($levels == 0)
@@ -1980,6 +2005,10 @@ function cot_build_url($text, $maxlen=64)
  */
 function cot_build_user($id, $user, $extra_attrs = '')
 {
+	if (function_exists('cot_build_user_custom'))
+	{
+		return cot_build_user_custom($id, $user, $extra_attrs);
+	}
 	if (!$id)
 	{
 		return empty($user) ? '' : $user;
@@ -1988,6 +2017,41 @@ function cot_build_user($id, $user, $extra_attrs = '')
 	{
 		return empty($user) ? '?' : cot_rc_link(cot_url('users', 'm=details&id='.$id.'&u='.$user), $user, $extra_attrs);
 	}
+}
+
+/**
+ * Displays User full name
+ *
+ * Format of full name is language specific and defined by $R['users_full_name']
+ * resource string.
+ *
+ * @param array|int $user User Data or User ID
+ * @return string
+ */
+function cot_user_full_name($user)
+{
+	if (empty($user)) return '';
+	if (is_int($user) && $user > 0 || ctype_digit($user))
+	{
+		require_once cot_incfile('users', 'module');
+		$user = cot_user_data($user);
+	}
+    if (empty($user)) return '';
+
+	$user_fname = $user['user_firstname'] ? $user['user_firstname'] : $user['user_first_name'];
+	$user_mname = $user['user_middlename'] ? $user['user_middlename'] : $user['user_middle_name'];
+	$user_lname = $user['user_lastname'] ? $user['user_lastname'] : $user['user_last_name'];
+
+	$full_name = trim(cot_rc('users_full_name',
+		array(
+			'firstname' 	=> $user_fname,
+			'middlename'	=> $user_mname,
+			'lastname'		=> $user_lname,
+            'name'          => $user['user_name']
+		)
+	));
+
+	return $full_name ? $full_name : $user['user_name'];
 }
 
 /**
@@ -2080,6 +2144,10 @@ function cot_generate_usertags($user_data, $tag_prefix = '', $emptyname='', $all
 			$sql = $db->query("SELECT * FROM $db_users WHERE user_id = $user_id LIMIT 1");
 			$user_data = $sql->fetch();
 		}
+		else if (!is_array($user_data))
+		{
+			$user_data = array();
+		}
 
 		if (is_array($user_data) && $user_data['user_id'] > 0 && !empty($user_data['user_name']))
 		{
@@ -2092,6 +2160,7 @@ function cot_generate_usertags($user_data, $tag_prefix = '', $emptyname='', $all
 				'NICKNAME' => htmlspecialchars($user_data['user_name']),
 				'DETAILSLINK' => cot_url('users', 'm=details&id=' . $user_data['user_id'].'&u='.htmlspecialchars($user_data['user_name'])),
 				'DETAILSLINKSHORT' => cot_url('users', 'm=details&id=' . $user_data['user_id']),
+				'FULL_NAME' => htmlspecialchars(cot_user_full_name($user_data)),
 				'TITLE' => $cot_groups[$user_data['user_maingrp']]['title'],
 				'MAINGRP' => cot_build_group($user_data['user_maingrp']),
 				'MAINGRPID' => $user_data['user_maingrp'],
@@ -2105,6 +2174,7 @@ function cot_generate_usertags($user_data, $tag_prefix = '', $emptyname='', $all
 				'EMAIL' => cot_build_email($user_data['user_email'], $user_data['user_hideemail']),
 				'THEME' => $user_data['user_theme'],
 				'SCHEME' => $user_data['user_scheme'],
+				'LANG' => $user_data['user_lang'],
 				'GENDER' => ($user_data['user_gender'] == '' || $user_data['user_gender'] == 'U') ? '' : $L['Gender_' . $user_data['user_gender']],
 				'BIRTHDATE' => (is_null($user_data['user_birthdate'])) ? '' : cot_date('date_full', $user_data['user_birthdate']),
 				'BIRTHDATE_STAMP' => (is_null($user_data['user_birthdate'])) ? '' : $user_data['user_birthdate'],
@@ -2140,6 +2210,7 @@ function cot_generate_usertags($user_data, $tag_prefix = '', $emptyname='', $all
 				'ID' => 0,
 				'NAME' => (!empty($emptyname)) ? $emptyname : $L['Deleted'],
 				'NICKNAME' => (!empty($emptyname)) ? $emptyname : $L['Deleted'],
+				'FULL_NAME' => (!empty($emptyname)) ? $emptyname : $L['Deleted'],
 				'MAINGRP' => cot_build_group(1),
 				'MAINGRPID' => 1,
 				'MAINGRPSTARS' => '',
@@ -2166,7 +2237,10 @@ function cot_generate_usertags($user_data, $tag_prefix = '', $emptyname='', $all
 		}
 		/* ===== */
 
-		$cacheitem && $user_cache[$user_data['user_id']] = $temp_array;
+		if(is_array($user_data) && isset($user_data['user_id'])) {
+			$cacheitem && $user_cache[$user_data['user_id']] = $temp_array;
+		}
+
 	}
 	foreach ($temp_array as $key => $val)
 	{
@@ -2174,6 +2248,7 @@ function cot_generate_usertags($user_data, $tag_prefix = '', $emptyname='', $all
 	}
 	return $return_array;
 }
+
 
 /**
  * Resize an image
@@ -2195,29 +2270,6 @@ function cot_imageresize($source, $target='return', $target_width=99999, $target
 	if(!$source_size) return;
 	$mimetype = $source_size['mime'];
 	if (substr($mimetype, 0, 6) != 'image/') return;
-
-	// Prevent from loading images taking more than 100M of memory
-	if (!isset($source_size['channels'])) $source_size['channels'] = 1;
-	$required_memory = $source_size[0] * $source_size[1] * ($source_size['bits'] / 8) * $source_size['channels'] * 2.5;
-	$memory_limit = trim(ini_get('memory_limit'));
-	$last = strtolower($memory_limit[strlen($memory_limit)-1]);
-	switch ($last)
-	{
-		case 'g':
-			$memory_limit *= 1024;
-		case 'm':
-			$memory_limit *= 1024;
-		case 'k':
-			$memory_limit *= 1024;
-	}
-	if ($memory_limit > 0)
-	{
-		$avail_memory = $memory_limit - memory_get_usage();
-		if ($required_memory > $avail_memory * 0.7)
-		{
-			return;
-		}
-	}
 
 	$source_width = $source_size[0];
 	$source_height = $source_size[1];
@@ -2268,7 +2320,12 @@ function cot_imageresize($source, $target='return', $target_width=99999, $target
 		$target_width = ceil($height_ratio * $source_width);
 	}
 
-	//ini_set('memory_limit', '100M');
+	// Avoid loading images there's not enough memory for
+	if (!cot_img_check_memory($source, (int)ceil($target_width * $target_height * 4 / 1048576)))
+	{
+		return ($return) ? null : false;
+	}
+
 	$canvas = imagecreatetruecolor($target_width, $target_height);
 
 	switch($mimetype)
@@ -2430,6 +2487,101 @@ function cot_imagesharpen($imgdata, $source_width, $target_width)
 }
 
 /**
+ * Checks if PHP can have enough memory to process an image
+ *
+ * @param  string  $file_path  Path to an image
+ * @param  string  $extra_size Extra size to adjust to the estimate (in MB)
+ * @return boolean             TRUE if enough memory is available, FALSE otherwise
+ */
+function cot_img_check_memory($file_path, $extra_size = 0)
+{
+	// Getting memory occupied by the script
+	$usedMem = memory_get_usage(true);
+	// In megabytes
+	$usedMem = round($usedMem / 1048576);
+
+	$haveMem = ini_get('memory_limit');
+	if ($haveMem == '-1')
+	{
+		// no limit set, so we try any way
+		return true;
+	}
+	preg_match('/(\d+)(\w+)/', $haveMem, $mtch);
+	// Getting available memory in MBytes
+	if (!empty($mtch[2]))
+	{
+		if ($mtch[2] == 'M')
+		{
+			$haveMem =  $mtch[1];
+		}
+		elseif ($mtch[2] == 'G')
+		{
+			$haveMem =  $mtch[1] * 1024;
+		}
+		elseif ($mtch[2] == 'K')
+		{
+			$haveMem =  $mtch[1] / 1024;
+		}
+	}
+
+	// Gettimg memory size required to process the image
+	$source_size = getimagesize($file_path);
+	if (!$source_size)
+	{
+		// Wrong image
+		return false;
+	}
+	$width_orig = $source_size[0];
+	$height_orig = $source_size[1];
+	$depth_orig = ($source_size['bits'] > 8) ? ($source_size['bits'] / 8) : 1;
+	$channels_orig = $source_size['channels'] > 0 ? $source_size['channels'] : 4;
+
+	// In MBytes too
+	$needMem = $width_orig * $height_orig * $depth_orig * $channels_orig / 1048576;
+	// Adding some offset memory for other image processing and script variables,
+	// otherwise the script fails
+	$needMem = intval($needMem + $usedMem + 15 + $extra_size);
+	// Trying to allocate memory required
+	if ($haveMem < $needMem)
+	{
+		if (!ini_set('memory_limit', $needMem.'M'))
+		{
+			// Could not allocate memory
+			return false;
+		}
+	}
+	else
+	{
+		return true;
+	}
+	// Making sure we could allocate enough memory
+	$haveMem = ini_get('memory_limit');
+	preg_match('/(\d+)(\w+)/', $haveMem, $mtch);
+	// Getting available memory in MBytes
+	if (!empty($mtch[2]))
+	{
+		if ($mtch[2] == 'M')
+		{
+			$haveMem =  $mtch[1];
+		}
+		elseif ($mtch[2] == 'G')
+		{
+			$haveMem =  $mtch[1] * 1024;
+		}
+		elseif ($mtch[2] == 'K')
+		{
+			$haveMem =  $mtch[1] / 1024;
+		}
+	}
+	if ($haveMem < $needMem)
+	{
+		// No, we couldn't allocate enough memory
+		return false;
+	}
+	return true;
+}
+
+/**
  * Returns Theme/Scheme selection dropdown
  *
  * @param string $selected_theme Seleced theme
@@ -2584,7 +2736,7 @@ function cot_clear_messages($src = '', $class = '')
 		unset($error_string);
 	}
 
-	if (!is_array($_SESSION['cot_messages'][$sys['site_id']]))
+	if (!is_array($_SESSION['cot_messages'][$sys['site_id']]) || (!empty($src) && !is_array($_SESSION['cot_messages'][$sys['site_id']][$src])))
 	{
 		return;
 	}
@@ -2701,9 +2853,9 @@ function cot_die_message($code, $header = TRUE, $message_title = '', $message_bo
 {
 	// Globals and requirements
 	global $error_string, $out, $L, $R;
-    $LL = is_array($L) ? $L : array();
-    require_once cot_langfile('message', 'core');
-    $L = array_merge($L, $LL);
+	$LL = is_array($L) ? $L : array();
+	require_once cot_langfile('message', 'core');
+	$L = array_merge($L, $LL);
 
 	if (cot_error_found() && $_SERVER['REQUEST_METHOD'] == 'POST')
 	{
@@ -2816,6 +2968,14 @@ function cot_die_message($code, $header = TRUE, $message_title = '', $message_bo
 	{
 		echo '</div></body></html>';
 	}
+
+	/* === Hook === */
+	foreach (cot_getextplugins('die.message') as $pl)
+	{
+		include $pl;
+	}
+	/* ===== */
+
 	exit;
 }
 
@@ -2998,7 +3158,7 @@ function cot_log($text, $group='def')
 {
 	global $db, $db_logger, $sys, $usr, $_SERVER;
 
-	$db->insert($db_logger, array(
+	$db && $db->insert($db_logger, array(
 		'log_date' => (int)$sys['now'],
 		'log_ip' => $usr['ip'],
 		'log_name' => $usr['name'],
@@ -3025,7 +3185,7 @@ function cot_log_import($s, $e, $v, $o)
 /**
  * Records a generic message to be displayed on results page
  * @param string $text Message lang string code or full text
- * @param string $class Message class: 'status', 'error', 'ok', 'notice', etc.
+ * @param string $class Message class: 'error', 'ok', 'warning'
  * @param string $src Message source identifier
  * @see cot_error()
  */
@@ -3138,6 +3298,37 @@ function cot_langfile($name, $type = 'plug', $default = 'en', $lang = null)
 }
 
 /**
+ * Returns a exists language from HTTP_ACCEPT_LANGUAGE
+ *
+ * @return string
+ */
+function cot_lang_determine()
+{
+	global $cfg;
+	if (($list = strtolower($_SERVER['HTTP_ACCEPT_LANGUAGE'])))
+	{
+		if (preg_match_all('/([a-z]{1,8}(?:-[a-z]{1,8})?)(?:;q=([0-9.]+))?/', $list, $list))
+		{
+			$language = array_combine($list[1], $list[2]);
+			//
+			foreach ($language as $n => $v)
+			{
+				$language[$n] = $v ? $v : 1;
+			}
+			arsort($language, SORT_NUMERIC);
+			foreach ($language as $n => $v)
+			{
+				if (@file_exists($cfg['lang_dir']."/$n/main.$n.lang.php"))
+				{
+					return $n;
+				}
+			}
+		}
+	}
+	return 'en';
+}
+
+/**
  * Tries to detect and fetch a user scheme CSS file or returns FALSE on error.
  *
  * @global array $usr User object
@@ -3148,12 +3339,11 @@ function cot_langfile($name, $type = 'plug', $default = 'en', $lang = null)
 function cot_schemefile()
 {
 	global $usr, $cfg, $out;
-
 	if (file_exists("{$cfg['themes_dir']}/{$usr['theme']}/{$usr['scheme']}.css"))
 	{
 		return "{$cfg['themes_dir']}/{$usr['theme']}/{$usr['scheme']}.css";
 	}
-	elseif (is_dir("{$cfg['themes_dir']}/{$usr['theme']}/css/"))
+	if (is_dir("{$cfg['themes_dir']}/{$usr['theme']}/css/"))
 	{
 		if (file_exists("{$cfg['themes_dir']}/{$usr['theme']}/css/{$usr['scheme']}.css"))
 		{
@@ -3166,7 +3356,7 @@ function cot_schemefile()
 			return "{$cfg['themes_dir']}/{$usr['theme']}/css/{$cfg['defaultscheme']}.css";
 		}
 	}
-	elseif (is_dir("{$cfg['themes_dir']}/{$usr['theme']}"))
+	if (is_dir("{$cfg['themes_dir']}/{$usr['theme']}"))
 	{
 		if (file_exists("{$cfg['themes_dir']}/{$usr['theme']}/{$cfg['defaultscheme']}.css"))
 		{
@@ -3187,7 +3377,6 @@ function cot_schemefile()
 			return "{$cfg['themes_dir']}/{$usr['theme']}/style.css";
 		}
 	}
-
 	$out['notices_array'][] = $L['com_schemefail'];
 	if (file_exists("{$cfg['themes_dir']}/{$cfg['defaulttheme']}/{$cfg['defaultscheme']}.css"))
 	{
@@ -3201,10 +3390,7 @@ function cot_schemefile()
 		$usr['scheme'] = $cfg['defaultscheme'];
 		return "{$cfg['themes_dir']}/{$cfg['defaulttheme']}/css/{$cfg['defaultscheme']}.css";
 	}
-	else
-	{
-		return false;
-	}
+	return false;
 }
 
 /**
@@ -3450,22 +3636,21 @@ function cot_stamp2date($stamp)
  * Unsupported date formats : S, n, t, L, B, G, u, e, I, P, Z, c, r
  * Unsupported strftime formats : %U, %W, %C, %g, %r, %R, %T, %X, %c, %D, %F, %x
  *
- * @author Cotonti Team
  * @see http://php.net/manual/en/function.strftime.php
  * @param string $format A format for date().
  * @return string Format usable for strftime().
  */
 function cot_date2strftime($format) {
 
-    $chars = array(
-        'd' => '%d', 'D' => '%a', 'j' => '%e', 'l' => '%A',
+	$chars = array(
+		'd' => '%d', 'D' => '%a', 'j' => '%e', 'l' => '%A',
 		'N' => '%u', 'w' => '%w', 'z' => '%j', 'W' => '%V',
 		'F' => '%B', 'm' => '%m', 'M' => '%b', 'o' => '%G',
 		'Y' => '%Y', 'y' => '%y', 'a' => '%P', 'A' => '%p',
 		'g' => '%l', 'h' => '%I', 'H' => '%H', 'i' => '%M',
 		's' => '%S', 'O' => '%z', 'T' => '%Z', 'U' => '%s'
-    );
-    return strtr((string)$format, $chars);
+	);
+	return strtr((string)$format, $chars);
 }
 
 /**
@@ -3545,8 +3730,8 @@ function cot_timezone_offset($tz, $hours = false, $dst = true)
 	{
 		return null;
 	}
-    // $offset = $remote_dtz->getOffset($remote_dt) - $origin_dtz->getOffset($origin_dt) - $dstoffset;
-   	$offset = $dst ? $remote_dtz->getOffset($remote_dt) : $standard_offset;
+	// $offset = $remote_dtz->getOffset($remote_dt) - $origin_dtz->getOffset($origin_dt) - $dstoffset;
+	$offset = $dst ? $remote_dtz->getOffset($remote_dt) : $standard_offset;
 	return $hours ? floatval($offset / 3600) : $offset;
 }
 
@@ -3727,11 +3912,18 @@ function cot_pagenav($module, $params, $current, $entries, $perpage, $characters
 		));
 		if ($i < $cur_left - 2)
 		{
-			$before .= $R['link_pagenav_gap'];
+			$before .= cot::$R['link_pagenav_gap'];
 		}
 		elseif ($i == $cur_left - 2)
 		{
-			$args[$characters] = $i * $perpage;
+			if ($cfg['easypagenav'])
+            {
+                $args[$characters] = $i+1;
+            }
+            else
+            {
+                $args[$characters] = $i * $perpage;
+            }
 			if ($ajax_rel)
 			{
 				$ajax_args[$characters] = $args[$characters];
@@ -3787,7 +3979,7 @@ function cot_pagenav($module, $params, $current, $entries, $perpage, $characters
 	{
 		if ($i > $cur_right + 2)
 		{
-			$after .= $R['link_pagenav_gap'];
+			$after .= cot::$R['link_pagenav_gap'];
 		}
 		elseif ($i == $cur_right + 2)
 		{
@@ -3887,6 +4079,7 @@ function cot_pagenav($module, $params, $current, $entries, $perpage, $characters
 		{
 			$rel = $base_rel;
 		}
+		unset($args[$characters]);
 		$firstlink = cot_url($module, $args, $hash);
 		$first = cot_rc('link_pagenav_first', array(
 			'url' => $firstlink,
@@ -3950,12 +4143,12 @@ function cot_pagenav($module, $params, $current, $entries, $perpage, $characters
 			'rel' => $rel,
 			'num' => $last_n + 1
 		));
-		$lastn  = (($last +  $perpage)<$totalpages) ?
+		$lastn  = (($last +  $perpage) < $totalpages) ?
 			cot_rc('link_pagenav_main', array(
-			'url' => cot_url($module, $args, $hash),
-			'event' => $event,
-			'rel' => $rel,
-			'num' => floor($last_n / $perpage) + 1
+				'url' => cot_url($module, $args, $hash),
+				'event' => $event,
+				'rel' => $rel,
+				'num' => floor($last_n / $perpage) + 1
 			)): FALSE;
 	}
 
@@ -4114,7 +4307,7 @@ function cot_string_truncate($text, $length = 100, $considerhtml = true, $exact 
 	if ($considerhtml)
 	{
 		// if the plain text is shorter than the maximum length, return the whole text
-		if (mb_strlen(preg_replace('/<.*?>/', '', $text)) <= $length)
+		if (!preg_match('/<\s*(pre|plaintext)/', $text) && mb_strlen(preg_replace('/<.*?>/', '', $text)) <= $length)
 		{
 			return $text;
 		}
@@ -4124,7 +4317,8 @@ function cot_string_truncate($text, $length = 100, $considerhtml = true, $exact 
 		$total_length = 0;
 		$open_tags = array();
 		$truncate = '';
-
+		$plain_mode = false;
+		$plain_tag = false;
 		foreach ($lines as $line_matchings)
 		{
 			// if there is any html-tag in this line, handle it and add it (uncounted) to the output
@@ -4134,60 +4328,90 @@ function cot_string_truncate($text, $length = 100, $considerhtml = true, $exact 
 				if (preg_match('/^<(\s*.+?\/\s*|\s*(img|br|input|hr|area|base|basefont|col|frame|isindex|link|meta|param)(\s.+?)?)>$/is', $line_matchings[1]))
 				{
 					// do nothing
-					// if tag is a closing tag (f.e. </b>)
 				}
+				// if tag is a closing tag (f.e. </b>)
 				elseif (preg_match('/^<\s*\/([^\s]+?)\s*>$/s', $line_matchings[1], $tag_matchings))
 				{
-					// delete tag from $open_tags list
-					$pos = array_search($tag_matchings[1], $open_tags);
-					if ($pos !== false)
+					$tag = false;
+					if (strtolower($tag_matchings[1]) == $plain_mode)
 					{
-						unset($open_tags[$pos]);
+						$plain_mode = false;
 					}
-					// if tag is an opening tag (f.e. <b>)
+					else
+					{
+						// delete tag from $open_tags list
+						$pos = array_search($tag_matchings[1], $open_tags);
+						if ($pos !== false)
+						{
+							unset($open_tags[$pos]);
+						}
+					}
 				}
+				// if tag is an opening tag (f.e. <b>)
 				elseif (preg_match('/^<\s*([^\s>!]+).*?>$/s', $line_matchings[1], $tag_matchings))
 				{
+					$tag = strtolower($tag_matchings[1]);
+					$plain_tag = in_array($tag, array('pre','plaintext')) ? $tag : false;
 					// add tag to the beginning of $open_tags list
-					array_unshift($open_tags, mb_strtolower($tag_matchings[1]));
+					if (!$plain_mode && !$plain_tag) array_unshift($open_tags, mb_strtolower($tag));
 				}
 				// add html-tag to $truncate'd text
-				$truncate .= $line_matchings[1];
+				if (!$plain_mode) $truncate .= $line_matchings[1];
 			}
 
-			// calculate the length of the plain text part of the line; handle entities as one character
-			$content_length = mb_strlen(preg_replace('/&[0-9a-z]{2,8};|&#[0-9]{1,7};|&#x[0-9a-f]{1,6};/i', ' ', $line_matchings[2]));
-			if ($total_length+$content_length> $length)
+			// the number of characters which are left
+			$left = $length - $total_length;
+			if ($plain_mode || ($plain_tag && $tag))
 			{
-				// the number of characters which are left
-				$left = $length - $total_length;
-				$entities_length = 0;
-				// search for html entities
-				if (preg_match_all('/&[0-9a-z]{2,8};|&#[0-9]{1,7};|&#x[0-9a-f]{1,6};/i', $line_matchings[2], $entities, PREG_OFFSET_CAPTURE))
+				// treats text as plain in <pre>, <plaintext> tags
+				$content = $plain_mode ? $line_matchings[0] : $line_matchings[2];
+				if (mb_strlen($content) <= $left)
 				{
-					// calculate the real length of all entities in the legal range
-					foreach ($entities[0] as $entity)
-					{
-						if ($entity[1]+1-$entities_length <= $left)
-						{
-							$left--;
-							$entities_length += mb_strlen($entity[0]);
-						}
-						else
-						{
-							// no more characters left
-							break;
-						}
-					}
+					$truncate .= $content;
+					$total_length += mb_strlen($content);
 				}
-				$truncate .= mb_substr($line_matchings[2], 0, $left+$entities_length);
-				// maximum lenght is reached, so get off the loop
-				break;
+				else
+				{
+					$truncate .= mb_substr($content, 0, $left);
+					$total_length += $left;
+				}
+				if ($plain_tag && !$plain_mode) $plain_mode = $plain_tag;
 			}
 			else
 			{
-				$truncate .= $line_matchings[2];
-				$total_length += $content_length;
+				// calculate the length of the plain text part of the line; handle entities as one character
+				$content_length = mb_strlen(preg_replace('/&[0-9a-z]{2,8};|&#[0-9]{1,7};|&#x[0-9a-f]{1,6};|[\r\n\s]{2,}/i', ' ', $line_matchings[2]));
+				if ($total_length+$content_length> $length)
+				{
+					$entities_length = 0;
+					// search for html entities and spaces
+					if (preg_match_all('/&[0-9a-z]{2,8};|&#[0-9]{1,7};|&#x[0-9a-f]{1,6};|[\r\n\s]{2,}/i', $line_matchings[2], $entities, PREG_OFFSET_CAPTURE))
+					{
+						// calculate the real length of all entities in the legal range
+						foreach ($entities[0] as $entity)
+						{
+							if ($entity[1]+1-$entities_length <= $left)
+							{
+								$left--;
+								$entities_length += mb_strlen($entity[0]);
+							}
+							else
+							{
+								// no more characters left
+								break;
+							}
+						}
+					}
+					$truncate .= mb_substr($line_matchings[2], 0, $left+$entities_length);
+					// maximum lenght is reached, so get off the loop
+					$truncated_by_space = preg_match('/[\r\n\s]/', mb_substr($line_matchings[2], $left+$entities_length, 1));
+					break;
+				}
+				else
+				{
+					$truncate .= $line_matchings[2];
+					$total_length += $content_length;
+				}
 			}
 
 			// if the maximum length is reached, get off the loop
@@ -4209,9 +4433,9 @@ function cot_string_truncate($text, $length = 100, $considerhtml = true, $exact 
 		}
 	}
 
-	if (!$exact)
+	if (!$exact && !$truncated_by_space && !$plain_mode)
 	{
-		// ...search the last occurance of a space...
+		// ...search the last occurence of a space...
 		if (mb_strrpos($truncate, ' ') > 0)
 		{
 			$pos1 = mb_strrpos($truncate, ' ');
@@ -4228,6 +4452,7 @@ function cot_string_truncate($text, $length = 100, $considerhtml = true, $exact 
 	if ($considerhtml)
 	{
 		// close all unclosed html-tags
+		if ($plain_mode) $truncate .= '</'.$plain_mode.'>';
 		foreach ($open_tags as $tag)
 		{
 			$truncate .= '</'.$tag.'>';
@@ -4319,214 +4544,35 @@ function cot_rc_attr_string($attrs)
 }
 
 /**
- * Consolidates local JS and CSS resources used during script execution,
- * prepares cache images and links to them
+ * Modifies rc string
  *
- * @global array $cot_rc_html Blocks of HTML tags to be included in the header and footer of the document
- * @global array $cot_rc_reg Header/Footer resource registry
- * @global array $cfg Configuration
- * @global array $env Environment strings
- * @global array $usr User object
- * @global Cache $cache
+ * @param string $rc A resource string
+ * @param mixed $attrs A string or associative array
+ * @return string
  */
-function cot_rc_consolidate()
+function cot_rc_modify($rc, $attrs)
 {
-	global $cache, $cfg, $cot_rc_html, $cot_rc_reg, $L, $R, $usr, $theme;
-
-	$is_admin_section = defined('COT_ADMIN');
-	$cot_rc_reg = array();
-
-	// Load standard resources
-	cot_rc_add_standard();
-
-	// Invoke rc handlers
-	foreach (cot_getextplugins('rc') as $pl)
+	if (!is_array($attrs))
 	{
-		include $pl;
-	}
-	if (!$is_admin_section)
-	{
-		if (file_exists("{$cfg['themes_dir']}/{$usr['theme']}/{$usr['theme']}.rc.php"))
+		preg_match_all("/(([a-z0-9-_]+)=(\"|')(.*?)(\"|'))/", $attrs, $matches);
+		$attrs = array();
+		foreach ($matches[2] as $key => $value)
 		{
-			include "{$cfg['themes_dir']}/{$usr['theme']}/{$usr['theme']}.rc.php";
+			$attrs[$value] = $matches[4][$key];
 		}
 	}
-
-	if (!is_array($cot_rc_reg))
+	foreach ($attrs as $key => $value)
 	{
-		return false;
-	}
-
-	// CSS should go first
-	ksort($cot_rc_reg);
-
-	// Build the header outputs
-	$cot_rc_html[$theme] = array();
-
-	// Consolidate resources
-	if ($cache && $cfg['headrc_consolidate'] && !$is_admin_section)
-	{
-		clearstatcache();
-		foreach ($cot_rc_reg as $type => $scope_data)
+		if(mb_stripos($rc, " ".$key."=") !== false)
 		{
-			if ($type == 'css')
-			{
-				$separator = "\n";
-			}
-			elseif ($type == 'js')
-			{
-				$separator = "\n;";
-			}
-			// Consolidation
-			foreach ($scope_data as $scope => $ordered_files)
-			{
-				$target_path = $cfg['cache_dir'] . "/static/$scope.$theme.$type";
-
-				$files = array();
-				foreach ($ordered_files as $order => $o_files)
-				{
-					$files = array_merge($files, $o_files);
-				}
-				$files = array_unique($files);
-
-				$code = '';
-				$modified = false;
-
-				if (!file_exists($target_path))
-				{
-					// Just compile a new cache file
-					$file_list = $files;
-					$modified = true;
-				}
-				else
-				{
-					// Load the list of files already cached
-					$file_list = unserialize(file_get_contents("$target_path.idx"));
-
-					// Check presense or modification time for each file
-					foreach ($files as $path)
-					{
-						if (!in_array($path, $file_list) || filemtime($path) >= filemtime($target_path))
-						{
-							$modified = true;
-							break;
-						}
-					}
-				}
-
-				if ($modified)
-				{
-					// Reconsolidate cache
-					$current_path = str_replace('\\', '/', realpath('.'));
-					foreach ($files as $path)
-					{
-						// Get file contents and remove BOM
-						$file_code = str_replace(pack('CCC', 0xef, 0xbb, 0xbf), '', file_get_contents($path));
-
-						if ($type == 'css')
-						{
-							if (strpos($path, '._.') !== false)
-							{
-								// Restore original file path
-								$path = str_replace('._.', '/', basename($path));
-							}
-							if ($path[0] === '/')
-							{
-								$path = mb_substr($path, 1);
-							}
-							$file_path = str_replace('\\', '/', dirname(realpath($path)));
-							$relative_path = str_replace($current_path, '', $file_path);
-							if ($relative_path[0] === '/')
-							{
-								$relative_path = mb_substr($relative_path, 1);
-							}
-							// Apply CSS imports
-							if (preg_match_all('#@import\s+url\((\'|")?([^)]+)\1?\);#i', $file_code, $mt, PREG_SET_ORDER))
-							{
-								foreach ($mt as $m)
-								{
-									if (preg_match('#^https?://#i', $m[2]))
-									{
-										$filename = $m[2];
-									}
-									else
-									{
-										$filename = empty($relative_path) ? $m[2] : $relative_path . '/' . $m[2];
-									}
-									$file_code = str_replace($m[0], file_get_contents($filename), $file_code);
-								}
-							}
-							// Fix URLs
-							if (preg_match_all('#\burl\((\'|")?([^\)"\']+)\1?\)#i', $file_code, $mt, PREG_SET_ORDER))
-							{
-								foreach ($mt as $m)
-								{
-									$filename = empty($relative_path) ? $m[2] : $relative_path . '/' . $m[2];
-									$filename = str_replace($current_path, '', str_replace('\\', '/',realpath($filename)));
-									if (!$filename)
-									{
-										continue;
-									}
-									if ($filename[0] === '/')
-									{
-										$filename = mb_substr($filename, 1);
-									}
-									$file_code = str_replace($m[0], 'url("' . $filename . '")', $file_code);
-								}
-							}
-						}
-						$code .= $file_code . $separator;
-					}
-
-					file_put_contents($target_path, $code);
-					if ($cfg['gzip'])
-					{
-						file_put_contents("$target_path.gz", gzencode($code));
-					}
-					file_put_contents("$target_path.idx", serialize($files));
-				}
-
-				$rc_url = "rc.php?rc=$scope.$theme.$type";
-				$cot_rc_html[$theme][$scope] .= cot_rc("code_rc_{$type}_file", array('url' => $rc_url));
-			}
+			$rc = preg_replace("/".$key."=(\"|')(.*?)(\"|')/", $key.'="'.$value.'"', $rc);
 		}
-		// Save the output
-		$cache && $cache->db->store('cot_rc_html', $cot_rc_html);
-	}
-	else
-	{
-		$log = array(); // log paths to avoid duplicates
-		foreach ($cot_rc_reg as $type => $scope_data)
+		else
 		{
-			if (is_array($cot_rc_reg[$type]['files']))
-			{
-				foreach ($cot_rc_reg[$type]['files'] as $scope => $scope_data)
-				{
-					foreach ($scope_data as $order => $files)
-					{
-						foreach ($files as $file)
-						{
-							if (!in_array($file, $log))
-							{
-								$cot_rc_html[$theme][$scope] .= cot_rc("code_rc_{$type}_file", array('url' => $file)) . "\n";
-								$log[] = $file;
-							}
-						}
-					}
-				}
-			}
-			if (is_array($cot_rc_reg[$type]['embed']))
-			{
-				foreach ($cot_rc_reg[$type]['embed'] as $scope => $scope_data)
-				{
-					foreach ($scope_data as $order => $code)
-					{
-						$cot_rc_html[$theme][$scope] .= cot_rc("code_rc_{$type}_embed", array('code' => $code)) . "\n";
-					}
-				}
-			}
+			$rc = preg_replace("/<([^\/ ]+)(.+)/", "<$1 ".$key.'="'.$value.'"$2', $rc);
 		}
 	}
+	return($rc);
 }
 
 /**
@@ -4546,31 +4592,12 @@ function cot_rc_consolidate()
  * @return bool This function always returns TRUE
  * @see cot_rc_add_file()
  * @global Cache $cache
+ *
+ * @deprecated Will be removed in v.1.0. Use Resources::addEmbed() instead
  */
 function cot_rc_add_embed($identifier, $code, $scope = 'global', $type = 'js', $order = 50)
 {
-	global $cache, $cfg, $cot_rc_reg, $cot_rc_skip_minification;
-
-	if ($cfg['headrc_consolidate'] && $cache && !defined('COT_ADMIN'))
-	{
-		// Save as file
-		$path = $cfg['cache_dir'] . '/static/' . $identifier . '.' . $type;
-		if (!file_exists($path) || md5($code) != md5_file($path))
-		{
-			if ($cfg['headrc_minify'] && !$cot_rc_skip_minification)
-			{
-				$code = cot_rc_minify($code, $type);
-			}
-			file_put_contents($path, $code);
-		}
-		$cot_rc_reg[$type][$scope][$order][] = $path;
-	}
-	else
-	{
-		$separator = $type == 'js' ? "\n;" : "\n";
-		$cot_rc_reg[$type]['embed'][$scope][$order] .= $code . $separator;
-	}
-	return true;
+	return Resources::addEmbed($code, $type, $order, $scope, $identifier);
 }
 
 /**
@@ -4595,34 +4622,12 @@ function cot_rc_add_embed($identifier, $code, $scope = 'global', $type = 'js', $
  * @param int $order Order priority number
  * @return bool Returns TRUE normally, FALSE is file was not found
  * @global Cache $cache
+ *
+ * @deprecated Will be removed in v.1.0. Use Resources::addFile() instead
  */
 function cot_rc_add_file($path, $scope = 'global', $order = 50)
 {
-	global $cache, $cfg, $cot_rc_reg, $cot_rc_skip_minification;
-	if (!file_exists($path))
-	{
-		return false;
-	}
-
-	$type = preg_match('#\.(min\.)?(js|css)$#', mb_strtolower($path), $m) ? $m[2] : 'js';
-
-	if ($cache && $cfg['headrc_consolidate'] && !defined('COT_ADMIN') && $cfg['headrc_minify'] && !$cot_rc_skip_minification && $m[1] != 'min.')
-	{
-		$bname = ($type == 'css') ? str_replace('/', '._.', $path) : basename($path) . '.min';
-		$code = cot_rc_minify(file_get_contents($path), $type);
-		$path = $cfg['cache_dir'] . '/static/' . $bname;
-		file_put_contents($path, $code);
-	}
-
-	if ($cfg['headrc_consolidate'] && $cache && !defined('COT_ADMIN'))
-	{
-		$cot_rc_reg[$type][$scope][$order][] = $path;
-	}
-	else
-	{
-		$cot_rc_reg[$type]['files'][$scope][$order][] = $path;
-	}
-	return true;
+	return Resources::addFile($path, '', $order, $scope);
 }
 
 /**
@@ -4634,60 +4639,19 @@ function cot_rc_add_standard()
 
 	if ($cfg['jquery'] && !$cfg['jquery_cdn'])
 	{
-		cot_rc_add_file('js/jquery.min.js');
-	}
-
-	if ($cfg['jquery'] && $cfg['turnajax'])
-	{
-		cot_rc_add_file('js/jquery.history.min.js');
+		Resources::addFile(Resources::jQuery, 'js', 30);
 	}
 
 	if ($cfg['jquery'])
 	{
-		cot_rc_add_file('js/jqModal.min.js');
+		Resources::addFile('js/jqModal.min.js');
 	}
 
-	cot_rc_add_file('js/base.js');
+	Resources::addFile('js/base.js');
 
 	if ($cfg['jquery'] && $cfg['turnajax'])
 	{
-		cot_rc_add_file('js/ajax_on.js');
-	}
-}
-
-/**
- * Sends registered header resources to head output
- *
- * @global array $out Output snippets
- * @global array $cot_rc_html Header HTML
- */
-function cot_rc_output()
-{
-	global $cot_rc_html, $out, $usr, $theme;
-	if (is_array($cot_rc_html) && isset($cot_rc_html[$theme]))
-	{
-		foreach ($cot_rc_html[$theme] as $scope => $html)
-		{
-			switch ($scope)
-			{
-				case 'global':
-					$pass = true;
-					break;
-				case 'guest':
-					$pass = $usr['id'] == 0;
-					break;
-				case 'user':
-					$pass = $usr['id'] > 0;
-					break;
-				default:
-					$parts = explode('_', $scope);
-					$pass = count($parts) == 2 && $parts[0] == 'group' && $parts[1] == $usr['maingrp'];
-			}
-			if ($pass)
-			{
-				$out['head_head'] = $html.$out['head_head'];
-			}
-		}
+		Resources::addFile('js/ajax_on.js');
 	}
 }
 
@@ -4698,12 +4662,14 @@ function cot_rc_output()
  * @param string $code Stylesheet or javascript code
  * @param bool $prepend Prepend this file before other head outputs
  * @param string $type Resource type: 'js' or 'css'
+ *
+ * @deprecated Will be removed in v.1.0. Resources::embed() instead
  */
 function cot_rc_embed($code, $prepend = false, $type = 'js')
 {
-	global $out;
-	$embed = cot_rc("code_rc_{$type}_embed", array('code' => $code));
-	$prepend ? $out['head_head'] = $embed . $out['head_head'] : $out['head_head'] .= $embed;
+	$order = 60;
+	if($prepend) $order = 40;
+	Resources::embed($code, $type, $order);
 }
 
 /**
@@ -4712,11 +4678,12 @@ function cot_rc_embed($code, $prepend = false, $type = 'js')
  * @global array $out Output snippets
  * @param string $code Stylesheet or javascript code
  * @param string $type Resource type: 'js' or 'css'
+ *
+ * @deprecated Will be removed in v.1.0. Resources::embedFooter() instead
  */
 function cot_rc_embed_footer($code, $type = 'js')
 {
-	global $out;
-	$out['footer_rc'] .= cot_rc("code_rc_{$type}_embed", array('code' => $code));
+	Resources::embedFooter($code, $type);
 }
 
 /**
@@ -4739,13 +4706,14 @@ function cot_rc_link($url, $text, $attrs = '')
  * @global array $out Output snippets
  * @param string $path Stylesheet *.css or script *.js path/url
  * @param bool $prepend Prepend this file before other header outputs
+ *
+ * @deprecated Will be removed in v.1.0. Use Resources::linkFile() instead
  */
 function cot_rc_link_file($path, $prepend = false)
 {
-	global $out;
-	$type = preg_match('#\.(js|css)$#i', $path, $m) ? strtolower($m[1]) : 'js';
-	$embed = cot_rc("code_rc_{$type}_file", array('url' => $path));
-	$prepend ? $out['head_head'] = $embed . $out['head_head'] : $out['head_head'] .= $embed;
+	$order = 60;
+	if($prepend) $order = 40;
+	Resources::linkFile($path, '', $order);
 }
 
 /**
@@ -4753,12 +4721,12 @@ function cot_rc_link_file($path, $prepend = false)
  *
  * @global array $out Output snippets
  * @param string $path JavaScript or CSS file path
+ *
+ * @deprecated Will be removed in v.1.0. Resources::linkFileFooter() instead
  */
 function cot_rc_link_footer($path)
 {
-	global $out;
-	$type = preg_match('#\.(js|css)$#i', $path, $m) ? strtolower($m[1]) : 'js';
-	$out['footer_rc'] .= cot_rc("code_rc_{$type}_file", array('url' => $path));
+	Resources::linkFileFooter($path);
 }
 
 /**
@@ -4767,20 +4735,12 @@ function cot_rc_link_footer($path)
  * @param string $code Code to minify
  * @param string $type Type: 'js' or 'css'
  * @return string Minified code
+ *
+ * @deprecated Will be removed in v.1.0. Resources::linkFileFooter() instead
  */
 function cot_rc_minify($code, $type = 'js')
 {
-	if ($type == 'js')
-	{
-		require_once './lib/jsmin.php';
-		$code = JSMin::minify($code);
-	}
-	elseif ($type == 'css')
-	{
-		require_once './lib/cssmin.php';
-		$code = minify_css($code);
-	}
-	return $code;
+	return Resources::minify($code, $type);
 }
 
 /*
@@ -4792,21 +4752,27 @@ function cot_rc_minify($code, $type = 'js')
  *
  * @global array $cfg
  * @global array $cot_captcha
+ * @param string $use_captcha The CAPTCHA to manually use
  * @return string
  */
-function cot_captcha_generate()
+function cot_captcha_generate($use_captcha = '')
 {
 	global $cfg, $cot_captcha;
-	if (!$cfg['captcharandom'])
+
+	if(!empty($use_captcha))
 	{
-		$captcha = $cfg['captchamain'] . '_generate';
+		$captcha = $use_captcha;
+	}
+	elseif (!$cfg['captcharandom'])
+	{
+		$captcha = $cfg['captchamain'];
 	}
 	else
 	{
 		$captcha = $cot_captcha[rand(0, count($cot_captcha) - 1)];
-		$tepmcap = '<input type="hidden" name="capman" value="' . $captcha . '" />';
-		$captcha .="_generate";
 	}
+	$tepmcap = '<input type="hidden" name="capman" value="' . $captcha . '" />';
+	$captcha .= '_generate';
 
 	if (function_exists($captcha))
 	{
@@ -4837,8 +4803,6 @@ function cot_captcha_list()
  */
 function cot_captcha_validate($value)
 {
-	global $cfg;
-
 	// This function can only be called once per request
 	static $called = false;
 	if ($called)
@@ -4850,14 +4814,12 @@ function cot_captcha_validate($value)
 		$called = true;
 	}
 
-	if (!$cfg['captcharandom'])
+	$captcha = cot_import('capman', 'P', 'TXT');
+	if(!in_array($captcha, cot_captcha_list()))
 	{
-		$captcha = $cfg['captchamain'] . "_validate";
+		return false;
 	}
-	else
-	{
-		$captcha = cot_import('capman', 'P', 'TXT') . "_validate";
-	}
+	$captcha .= '_validate';
 	if (function_exists($captcha))
 	{
 		return $captcha($value);
@@ -5083,7 +5045,7 @@ function cot_unregister_globals()
 /**
  * Returns XSS protection variable for GET URLs
  *
- * @return unknown
+ * @return string
  */
 function cot_xg()
 {
@@ -5219,7 +5181,7 @@ function cot_parse_str($str)
 	{
 		if (!empty($item))
 		{
-			list($key, $val) = explode('=', $item);
+			list($key, $val) = explode('=', $item, 2);
 			$res[$key] = $val;
 		}
 	}
@@ -5299,6 +5261,41 @@ function cot_url($name, $params = '', $tail = '', $htmlspecialchars_bypass = fal
 }
 
 /**
+ * Constructs a modified version of a current URL.
+ * @param  array   $params                  Modified params
+ * @param  string  $tail                    URL postfix, e.g. anchor
+ * @param  bool    $htmlspecialchars_bypass If TRUE, will not convert & to &amp; and so on.
+ * @param  bool    $ignore_appendix         If TRUE, $cot_url_appendix will be ignored for this URL
+ * @return string                           Valid HTTP URL
+ */
+function cot_url_modify($params = array(), $tail = '', $htmlspecialchars_bypass = false, $ignore_appendix = false)
+{
+	// Preprocess arguments
+	if (is_string($params))
+	{
+		$params = cot_parse_str($params);
+	}
+	if (!is_array($params))
+	{
+		$params = array();
+	}
+	$area = defined('COT_PLUG') ? 'plug' : cot::$env['ext'];
+	$params = array_merge($_GET, $params);
+	if (!defined('COT_PLUG'))
+	{
+		unset($params['e']);
+	}
+	unset($params['rwr']);
+	return cot_url(
+		$area,
+		$params,
+		$tail,
+		$htmlspecialchars_bypass,
+		$ignore_appendix
+	);
+}
+
+/**
  * Checks if an absolute URL belongs to current site or its subdomains
  *
  * @param string $url Absolute URL
@@ -5311,47 +5308,6 @@ function cot_url_check($url)
 }
 
 /**
- * Transliterates a string if transliteration is available
- *
- * @param string $str Source string
- * @return string
- */
-
-function cot_translit_encode($str)
-{
-	global $lang, $cot_translit;
-	static $lang_loaded = false;
-	if ($lang != 'en' && !$lang_loaded)
-	{
-		require_once cot_langfile('translit', 'core');
-		$lang_loaded = true;
-	}
-	if ($lang != 'en' && is_array($cot_translit))
-	{
-		// Apply transliteration
-		$str = strtr($str, $cot_translit);
-	}
-	return $str;
-}
-
-/**
- * Backwards transition for cot_translit_encode
- *
- * @param string $str Encoded string
- * @return string
- */
-function cot_translit_decode($str)
-{
-	global $lang, $cot_translitb;
-	if ($lang != 'en' && is_array($cot_translitb))
-	{
-		// Apply transliteration
-		$str = strtr($str, $cot_translitb);
-	}
-	return $str;
-}
-
-/**
  * Store URI-redir to session
  *
  * @global $sys
@@ -5360,18 +5316,113 @@ function cot_uriredir_store()
 {
 	global $sys;
 
+	$m = cot_import('m', 'G', 'ALP');
 	if ($_SERVER['REQUEST_METHOD'] != 'POST' // not form action/POST
 		&& empty($_GET['x']) // not xg, hence not form action/GET and not command from GET
 		&& !defined('COT_MESSAGE') // not message location
 		&& !defined('COT_AUTH') // not login/logout location
 		&&	(!defined('COT_USERS')
-			|| empty($_GET['m'])
-			|| !in_array($_GET['m'], array('auth', 'logout', 'register'))
-	)
+			|| is_null($m)
+			|| !in_array($m, array('auth', 'logout', 'register'))
+		)
 	)
 	{
 		$_SESSION['s_uri_redir'] = $sys['uri_redir'];
 	}
+}
+
+/**
+ * Splits URL for its parts
+ * Same as `parse_str` but with workaround for URL with omitted scheme for old PHP versions
+ *
+ * @param array $url Array of URL parts
+ * @see http://php.net/manual/en/function.parse-str.php
+ */
+function cot_parse_url($url)
+{
+	$urlp = parse_url($url);
+
+	// check for URL with omited scheme on PHP prior 5.4.7 (//somesite.com)
+	if (substr($urlp['path'],0,2) == '//' && empty($urlp['scheme'])) $needfix = true;
+
+	// check for URL with auth credentials (user[:pass]@site.com/)
+	if (empty($urlp['host']) && preg_match('#^(([^@:]+)|([^@:]+:[^@:]+?))@.+/#', $urlp['path'])) $needfix = true;
+
+	if ($needfix)
+	{
+		$fake_scheme = 'fix-url-parsing';
+		$delimiter = (substr($urlp['path'],0,2) == '//') ? ':' : '://';
+		$url = $fake_scheme . $delimiter . $url; // adding fake scheme
+		$urlp = parse_url($url);
+		if ($urlp['scheme'] == $fake_scheme) unset($urlp['scheme']);
+	}
+	return $urlp;
+}
+
+/**
+ * Builds URL string from URL parts
+ *
+ * @param array $urlp
+ * @return string URL Array of URL parts
+ * @see `cot_parse_url()`
+ */
+function cot_http_build_url($urlp)
+{
+	$url = '';
+	$port = (int) $urlp['port'];
+	if ($urlp['port'] != $port) $port = '';
+	if (!empty($urlp['scheme'])) $url .= $urlp['scheme'] . '://';
+	if (!empty($urlp['user'])) {
+		if (!empty($urlp['pass'])) {
+			$url .= $urlp['user'] . ':' . $urlp['pass'] . '@';
+		} else{
+			$url .= $urlp['user'] . '@';
+		}
+	}
+	$url .= $urlp['host'];
+	if ($port && $port != '80' && preg_match('/^\d+$/', $port)) $url .=  ':' . $port;
+	if ( (empty($urlp['path']) && ($urlp['query'] || $urlp['fragment']))
+		|| ((!empty($urlp['path'])) && substr($urlp['path'], 0, 1) != '/') ) $urlp['path'] = '/' . $urlp['path'];
+	$url .=  $urlp['path'];
+	if (!empty($urlp['query'])) $url .=  '?' . $urlp['query'];
+	if (!empty($urlp['fragment'])) $url .=  '#' . $urlp['fragment'];
+	return $url;
+}
+
+/**
+ * Sanitize given URL to prevent XSS
+ *
+ * @param string $url URL to process (absolute or not)
+ */
+function cot_url_sanitize($url)
+{
+	function urlfilter($str)
+	{
+		return rawurlencode(rawurldecode($str));
+	}
+
+	$urlp = cot_parse_url($url);
+	$urlp['fragment'] = urlfilter($urlp['fragment']);
+
+	$path = $urlp['path'];
+	$query = str_replace('&amp;', '&', $urlp['query']);
+
+	$path = explode('/', $path);
+	$path = array_map('urlfilter', $path);
+	$urlp['path'] = implode('/', $path);
+
+	$filtered_params = array();
+	foreach (explode('&', $query) as $item)
+	{
+		if (!empty($item))
+		{
+			list($key, $val) = explode('=', $item, 2);
+			$filtered_params[] = urlfilter($key) . '=' . urlfilter($val);
+		}
+	}
+	if (sizeof($filtered_params)) $urlp['query'] = implode('&', $filtered_params);
+
+	return cot_http_build_url($urlp);
 }
 
 /**
@@ -5426,6 +5477,53 @@ $cot_languages['pt']= 'Portugese';
 $cot_languages['ru']= 'Русский';
 $cot_languages['se']= 'Svenska';
 $cot_languages['ua'] = 'Українська';
+
+/**
+ * Transliterates a string if transliteration is available
+ *
+ * @param string $str Source string
+ * @return string
+ */
+
+function cot_translit_encode($str)
+{
+	global $lang, $cot_translit;
+	static $lang_loaded = false;
+	if (!$lang_loaded && $lang != 'en' && file_exists(cot_langfile('translit', 'core')))
+	{
+		require_once cot_langfile('translit', 'core');
+		$lang_loaded = true;
+	}
+	if (is_array($cot_translit))
+	{
+		// Apply transliteration
+		$str = strtr($str, $cot_translit);
+	}
+	return $str;
+}
+
+/**
+ * Backwards transition for cot_translit_encode
+ *
+ * @param string $str Encoded string
+ * @return string
+ */
+function cot_translit_decode($str)
+{
+	global $lang, $cot_translitb;
+	static $lang_loaded = false;
+	if (!$lang_loaded && $lang != 'en' && file_exists(cot_langfile('translit', 'core')))
+	{
+		require_once cot_langfile('translit', 'core');
+		$lang_loaded = true;
+	}
+	if (is_array($cot_translitb))
+	{
+		// Apply transliteration
+		$str = strtr($str, $cot_translitb);
+	}
+	return $str;
+}
 
 /**
  * Makes correct plural forms of words

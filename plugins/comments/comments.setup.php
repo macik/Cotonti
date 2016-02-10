@@ -5,10 +5,10 @@ Code=comments
 Name=Comments system
 Category=community-social
 Description=Comments system for Cotonti
-Version=0.9.7
-Date=2011-09-23
+Version=0.9.17
+Date=2014-05-04
 Author=Cotonti Team
-Copyright=Partial copyright (c) Cotonti Team 2008-2013
+Copyright=Partial copyright (c) Cotonti Team 2008-2014
 Notes=BSD License
 Auth_guests=R
 Lock_guests=12345A
@@ -36,11 +36,9 @@ order=14:select:Chronological,Recent:Recent:Comment sorting order
 /**
  * Comments system plugins
  *
- * @package comments
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package Comments
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');

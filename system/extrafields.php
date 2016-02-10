@@ -3,11 +3,9 @@
 /**
  * Extrafields API
  *
- * @package Cotonti
- * @version 0.9.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package API - Extrafields
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -44,11 +42,13 @@ function cot_build_extrafields($name, $extrafield, $data)
 			$extrafield['field_variants'] = str_replace(array(' , ', ', ', ' ,'), ',', $extrafield['field_variants']);
 			$opt_array = explode(",", $extrafield['field_variants']);
 			$ii = 0;
+			$options_titles = $options_values = array();
 			foreach ($opt_array as $var)
 			{
 				$ii++;
+				$var = trim($var);
 				$options_titles[$ii] = (!empty($L[$extrafield['field_name'] . '_' . $var])) ? $L[$extrafield['field_name'] . '_' . $var] : $var;
-				$options_values[$ii] .= trim($var);
+				$options_values[$ii] = $var;
 			}
 			$result = cot_selectbox(trim($data), $name, $options_values, $options_titles, false, '', $extrafield['field_html']);
 			break;
@@ -56,14 +56,16 @@ function cot_build_extrafields($name, $extrafield, $data)
 		case 'radio':
 			$extrafield['field_variants'] = str_replace(array(' , ', ', ', ' ,'), ',', $extrafield['field_variants']);
 			$opt_array = explode(",", $extrafield['field_variants']);
+			$options_titles = $options_values = array();
 			if (count($opt_array) > 0)
 			{
 				$ii = 0;
 				foreach ($opt_array as $var)
 				{
 					$ii++;
+					$var = trim($var);
 					$options_titles[$ii] = (!empty($L[$extrafield['field_name'] . '_' . $var])) ? $L[$extrafield['field_name'] . '_' . $var] : $var;
-					$options_values[$ii] .= trim($var);
+					$options_values[$ii] = $var;
 				}
 			}
 			$result = cot_radiobox(trim($data), $name, $options_values, $options_titles, '', '', $extrafield['field_html']);
@@ -99,14 +101,16 @@ function cot_build_extrafields($name, $extrafield, $data)
 		case 'checklistbox':
 			$extrafield['field_variants'] = str_replace(array(' , ', ', ', ' ,'), ',', $extrafield['field_variants']);
 			$opt_array = explode(",", $extrafield['field_variants']);
+			$options_titles = $options_values = array();
 			if (count($opt_array) > 0)
 			{
 				$ii = 0;
 				foreach ($opt_array as $var)
 				{
 					$ii++;
+					$var = trim($var);
 					$options_titles[$ii] = (!empty($L[$extrafield['field_name'] . '_' . $var])) ? $L[$extrafield['field_name'] . '_' . $var] : $var;
-					$options_values[$ii] .= trim($var);
+					$options_values[$ii] = $var;
 				}
 			}
 			if (!is_array($data))
@@ -300,22 +304,27 @@ function cot_import_extrafields($inputname, $extrafield, $source='P', $oldvalue=
 
 				if(empty($extrafield['field_variants']) || in_array($ext, $ext_array))
 				{
-					if ($lang != 'en')
+					if ($lang != 'en' && file_exists(cot_langfile('translit', 'core')))
 					{
 						require_once cot_langfile('translit', 'core');
 						$fname = (is_array($cot_translit)) ? strtr($fname, $cot_translit) : '';
-					}					$fname = str_replace(' ', '_', $fname);
+					}
+					$fname = str_replace(array(' ', '  ', '__'), '_', $fname);
 					$fname = preg_replace('#[^a-zA-Z0-9\-_\.\ \+]#', '', $fname);
 					$fname = str_replace('..', '.', $fname);
+					$fname = str_replace('__', '_', $fname);
 					$fname = (empty($fname)) ? cot_unique() : $fname;
 
-					$fname .= (file_exists("{$cfg['extrafield_files_dir']}/$fname.$ext") && $oldvalue != $fname . '.' . $ext) ? date("YmjGis") : '';
-
-					$fname .= '.' . $ext;
-
+					// Generate unique file name. Old file - must be removed any way
 					$extrafield['field_params'] = (!empty($extrafield['field_params'])) ? $extrafield['field_params'] : $cfg['extrafield_files_dir'];
 					$extrafield['field_params'] .= (mb_substr($extrafield['field_params'], -1) == '/') ? '' : '/';
 
+					if(file_exists("{$extrafield['field_params']}$fname.$ext")){
+						$fname = $inputname.'_'.date("YmjGis").'_'.$fname;
+					}
+
+					$fname .= '.' . $ext;
+					
 					$file['old'] = (!empty($oldvalue) && ($import['delete'] || $import['tmp_name'])) ? $extrafield['field_params'].$oldvalue : '';
 					$file['field'] = $extrafield['field_name'];
 					$file['tmp'] = (!$import['delete']) ? $import['tmp_name'] : '';
@@ -455,7 +464,7 @@ function cot_default_html_construction($type)
 {
 	global $cfg;
 
-	include $cfg['system_dir'].'/resources.php';
+	include $cfg['system_dir'].'/resources.rc.php';
 	if (file_exists("{$cfg['themes_dir']}/{$cfg['defaulttheme']}/{$cfg['defaulttheme']}.php"))
 	{
 		include "{$cfg['themes_dir']}/{$cfg['defaulttheme']}/{$cfg['defaulttheme']}.php";
@@ -499,13 +508,14 @@ function cot_default_html_construction($type)
 			break;
 
 		case 'file':
-			$html = $R['input_file'] . '|' . $R['input_file_empty'];
+			$html = $R['input_filebox'] . '|' . $R['input_filebox_empty'];
 			break;
 
 		case 'filesize':
 			$html = '';
 			break;
 	}
+
 	$html = str_replace('{$attrs}', '', $html);
 	return $html;
 }
@@ -530,9 +540,11 @@ function cot_default_html_construction($type)
  *
  * @global CotDB $db
  */
-function cot_extrafield_add($location, $name, $type, $html='', $variants='', $default='', $required=false, $parse='HTML', $description='', $params = '', $enabled = 1, $noalter = false, $customtype = '')
+function cot_extrafield_add($location, $name, $type, $html='', $variants='', $default='', $required=false, $parse='HTML',
+                            $description='', $params = '', $enabled = 1, $noalter = false, $customtype = '')
 {
 	global $db, $db_extra_fields;
+
 	$checkname = cot_import($name, 'D', 'ALP');
 	$checkname = str_replace(array('-', '.'), array('', ''), $checkname);
 	if($checkname != $name)
@@ -548,19 +560,25 @@ function cot_extrafield_add($location, $name, $type, $html='', $variants='', $de
 	}
 
 	$fieldsres = $db->query("SHOW COLUMNS FROM $location");
+    $prefixFound = false;
 	while ($fieldrow = $fieldsres->fetch())
 	{
 		$column = $fieldrow['Field'];
 		// get column prefix in this table
-		$column_prefix = substr($column, 0, strpos($column, "_"));
+		if(!$prefixFound) {
+            $column_prefix = substr($column, 0, strpos($column, "_"));
+            $fieldName = $column;
+            if(!empty($column_prefix)) $fieldName = str_replace($column_prefix.'_', '', $column);
+            if($fieldName == 'id' || mb_strtolower($fieldrow['Key']) == 'pri') $prefixFound = true;
+        }
 
 		preg_match("#.*?_$name$#", $column, $match);
 		if ($match[1] != "" && !$noalter)
 		{
 			return false; // No adding - fields already exist
 		}
-		$i++;
 	}
+
 	$fieldsres->closeCursor();
 
 	$extf['field_location'] = $location;
@@ -610,7 +628,9 @@ function cot_extrafield_add($location, $name, $type, $html='', $variants='', $de
 	{
 		$sqltype = $customtype;
 	}
-	$step2 = $db->query("ALTER TABLE $location ADD " . $column_prefix . "_$name $sqltype ");
+    $fieldName = $name;
+    if($column_prefix != '') $fieldName = $column_prefix.'_'.$name;
+	$step2 = $db->query("ALTER TABLE $location ADD $fieldName $sqltype ");
 
 	return $step1 && $step2;
 }
@@ -654,11 +674,13 @@ function cot_extrafield_update($location, $oldname, $name, $type, $html='', $var
 	}
 	$field = $fieldsres->fetch();
 	$fieldsres->closeCursor();
+
 	$fieldsres = $db->query("SHOW COLUMNS FROM $location");
 	$fieldrow = $fieldsres->fetch();
 	$fieldsres->closeCursor();
 	$column = $fieldrow['Field'];
 	$column_prefix = substr($column, 0, strpos($column, "_"));
+
 	$alter = false;
 	if ($name != $field['field_name'])
 	{
@@ -718,7 +740,12 @@ function cot_extrafield_update($location, $oldname, $name, $type, $html='', $var
 	{
 		$sqltype = $customtype;
 	}
-	$sql = "ALTER TABLE $location CHANGE " . $column_prefix . "_$oldname " . $column_prefix . "_$name $sqltype ";
+
+    if($column_prefix != '') {
+        $oldname = $column_prefix.'_'.$oldname;
+        $name = $column_prefix.'_'.$name;
+    }
+	$sql = "ALTER TABLE $location CHANGE $oldname $name $sqltype ";
 	$step2 = $db->query($sql);
 
 	return $step1 && $step2;
@@ -749,12 +776,27 @@ function cot_extrafield_remove($location, $name)
 	$step1 = $db->delete($db_extra_fields, "field_name = '$name' AND field_location='$location'") == 1;
 
 	$step2 = true;
-	if ($db->query("SHOW COLUMNS FROM $location LIKE '%\_$name'")->rowCount() > 0)
+    $tmp = $name;
+    if($column_prefix != '') $tmp = '_'.$name;
+    if ($db->query("SHOW COLUMNS FROM $location LIKE '%{$tmp}'")->rowCount() > 0)
 	{
-		$step2 = $db->query("ALTER TABLE $location DROP " . $column_prefix . "_" . $name);
+        if($column_prefix != '') $name = $column_prefix . "_" . $name;
+		$step2 = $db->query("ALTER TABLE $location DROP " . $name);
 	}
 
 	return $step1 && $step2;
+}
+
+/**
+ * Registers a table in extrafields registry
+ * @param  string $table_name Unprefixed table name
+ */
+function cot_extrafields_register_table($table_name)
+{
+	if (!isset(cot::$extrafields[cot::$db->{$table_name}]))
+	{
+		cot::$extrafields[cot::$db->{$table_name}] = array();
+	}
 }
 
 /**
@@ -771,6 +813,8 @@ function cot_extrafield_remove($location, $name)
 function cot_import_filesarray($file_post)
 {
 	$file_post = $_FILES[$file_post];
+    if(empty($file_post)) return null;
+
 	$file_arr = array();
 	$file_keys = array_keys($file_post);
 
@@ -805,7 +849,7 @@ function cot_extrafield_movefiles()
 			{
 				@unlink($uploadfile['old']);
 			}
-			if (!empty($uploadfile['tmp']) && !empty($uploadfile['tmp']))
+			if (!empty($uploadfile['tmp']) && !empty($uploadfile['new']))
 			{
 				@move_uploaded_file($uploadfile['tmp'], $uploadfile['new']);
 			}
@@ -848,7 +892,7 @@ function cot_extrafield_unlinkfiles($fielddata, $extrafield)
 function cot_load_extrafields($forcibly = false)
 {
 	global $db, $cot_extrafields, $db_extra_fields, $cache;
-	if (!isset($cot_extrafields) || $forcibly)
+	if (empty($cot_extrafields) || $forcibly)
 	{
 		$cot_extrafields = array();
 		$where = (defined('COT_INSTALL')) ? "1" : "field_enabled=1";

@@ -2,11 +2,9 @@
 /**
  * File Upload Helpers
  *
- * @package Cotonti
- * @version 0.9.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package API - Uploads
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -22,24 +20,25 @@ defined('COT_CODE') or die('Wrong URL');
 function cot_file_check($path, $name, $ext)
 {
 	global $L, $cfg;
-	if ($cfg['pfsfilecheck'])
+	if ($cfg['pfs']['pfsfilecheck'])
 	{
 		require './datas/mimetype.php';
 		$fcheck = FALSE;
 		if (in_array($ext, array('jpg', 'jpeg', 'png', 'gif')))
 		{
+			$img_size = @getimagesize($path);
 			switch($ext)
 			{
 				case 'gif':
-					$fcheck = @imagecreatefromgif($path);
+					$fcheck = isset($img_size['mime']) && $img_size['mime'] == 'image/gif';
 				break;
 
 				case 'png':
-					$fcheck = @imagecreatefrompng($path);
+					$fcheck = isset($img_size['mime']) && $img_size['mime'] == 'image/png';
 				break;
 
 				default:
-					$fcheck = @imagecreatefromjpeg($path);
+					$fcheck = isset($img_size['mime']) && $img_size['mime'] == 'image/jpeg';
 				break;
 			}
 			$fcheck = $fcheck !== FALSE;
@@ -63,7 +62,7 @@ function cot_file_check($path, $name, $ext)
 			}
 			else
 			{
-				$fcheck = ($cfg['pfsnomimepass']) ? 1 : 2;
+				$fcheck = ($cfg['pfs']['pfsnomimepass']) ? 1 : 2;
 				cot_log(sprintf($L['pfs_filechecknomime'], $ext, $name), 'sec');
 			}
 		}
@@ -125,8 +124,8 @@ function cot_safename($basename, $underscore = true, $postfix = '')
 		$fname = strtr($fname, $cot_translit);
 	}
 	if($underscore) $fname = str_replace(' ', '_', $fname);
-	$fname = preg_replace('#[^a-zA-Z0-9\-_\.\ \+]#', '', $fname);
 	$fname = str_replace('..', '.', $fname);
-	if(empty($fname)) $fname = cot_unique();
+	$safename = preg_replace('#[^a-zA-Z0-9\-_\.\ \+]#', '', $fname);
+	if(empty($safename) || $safename != $fname) $fname = $safename.cot_unique();
 	return $fname . $postfix . '.' . mb_strtolower($ext);
 }

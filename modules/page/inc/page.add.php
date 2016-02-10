@@ -2,11 +2,9 @@
 /**
  * Add page.
  *
- * @package page
- * @version 0.9.6
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD License
+ * @package Page
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -95,7 +93,6 @@ if ($a == 'add')
 	}
 	else
 	{
-		$c = ($c != $rpage['page_cat']) ? $rpage['page_cat'] : $c;
 		cot_redirect(cot_url('page', 'm=add&c='.$c, '', true));
 	}
 }
@@ -145,6 +142,7 @@ $pageadd_array = array(
 	'PAGEADD_FORM_AUTHOR' => cot_inputbox('text', 'rpageauthor', $rpage['page_author'], array('size' => '24', 'maxlength' => '100')),
 	'PAGEADD_FORM_OWNER' => cot_build_user($usr['id'], htmlspecialchars($usr['name'])),
 	'PAGEADD_FORM_OWNERID' => $usr['id'],
+	'PAGEADD_FORM_DATE' => cot_selectbox_date($sys['now'], 'long', 'rpagedate'),
 	'PAGEADD_FORM_BEGIN' => cot_selectbox_date($sys['now'], 'long', 'rpagebegin'),
 	'PAGEADD_FORM_EXPIRE' => cot_selectbox_date(0, 'long', 'rpageexpire'),
 	'PAGEADD_FORM_FILE' => cot_selectbox($rpage['page_file'], 'rpagefile', range(0, 2), array($L['No'], $L['Yes'], $L['Members_only']), false),

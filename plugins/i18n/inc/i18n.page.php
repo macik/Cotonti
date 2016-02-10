@@ -2,11 +2,9 @@
 /**
  * Page translation tool
  *
- * @package i18n
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package I18n
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL.');
@@ -16,6 +14,8 @@ require_once cot_incfile('forms');
 
 $id = cot_import('id', 'G', 'INT');
 $l = cot_import('l', 'G', 'ALP');
+
+if (!$id || $id < 1) cot_die_message(404);
 
 /* === Hook === */
 foreach (cot_getextplugins('i18n.page.first') as $pl)

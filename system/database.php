@@ -4,11 +4,9 @@
  *
  * @see http://www.php.net/manual/en/book.pdo.php
  *
- * @package Cotonti
- * @version 0.9.0
- * @author Cotonti Team
- * @copyright (c) Cotonti Team 2010-2013
- * @license BSD
+ * @package API - Database
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -56,6 +54,12 @@ class CotDB extends PDO {
 	private $_xtime = 0;
 
 	/**
+	 * Table names registry
+	 * @var array
+	 */
+	private $_tables = array();
+
+	/**
 	 * Creates a PDO instance to represent a connection to the requested database.
 	 *
 	 * @param string $dsn The Data Source Name, or DSN, contains the information required to connect to the database.
@@ -79,7 +83,7 @@ class CotDB extends PDO {
 		parent::__construct($dsn, $username, $passwd, $options);
 		$this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-		if (version_compare($this->getAttribute(PDO::ATTR_CLIENT_VERSION), '5.1.0', '<'))
+		if (!method_exists($this, 'prepare'))
 		{
 			$this->_prepare_itself = true;
 		}
@@ -104,7 +108,7 @@ class CotDB extends PDO {
 				return $this->_tcount;
 				break;
 			default:
-				return null;
+				return isset($this->_tables[$name]) ? $this->_tables[$name] : null;
 		}
 	}
 
@@ -137,9 +141,9 @@ class CotDB extends PDO {
 		$pdo_message = $e->getMessage();
 		if (preg_match('#SQLSTATE\[(\w+)\].*?: (.*)#', $pdo_message, $matches))
 		{
-            $err_code = $matches[1];
-            $err_message = $matches[2];
-        }
+			$err_code = $matches[1];
+			$err_message = $matches[2];
+		}
 		else
 		{
 			$err_code = $e->getCode();
@@ -163,7 +167,11 @@ class CotDB extends PDO {
 			{
 				$placeholder = is_int($key) ? '?' : ':' . $key;
 				$value = is_int($val) ? $val : $this->quote($val);
-				$query = preg_replace('`' . preg_quote($placeholder) . '`', $value, $query, 1);
+				$pos = strpos($query, $placeholder);
+				if ($pos !== false)
+				{
+					$query = substr_replace($query, $value, $pos, strlen($placeholder));
+				}
 			}
 		}
 		return $query;
@@ -449,9 +457,27 @@ class CotDB extends PDO {
 		return 0;
 	}
 
+	/**
+	 * Prepares a param for use in SQL query without wrapping it with quotes
+	 * @param  string $str Param string
+	 * @return string      Escaped param
+	 */
 	public function prep($str)
 	{
 		return preg_replace("#^'(.*)'\$#", '$1', $this->quote($str));
+	}
+
+	/**
+	 * Registers an unprefixed table name in table names registry
+	 * @param  string $table_name Table name without a prefix, e.g. 'pages'
+	 */
+	public function registerTable($table_name)
+	{
+		if (!isset($GLOBALS['db_' . $table_name]))
+		{
+			$GLOBALS['db_' . $table_name] = $GLOBALS['db_x'] . $table_name;
+		}
+		$this->_tables[$table_name] = $GLOBALS['db_' . $table_name];
 	}
 
 	/**
@@ -475,9 +501,17 @@ class CotDB extends PDO {
 			$query = trim($query);
 			if (!empty($query))
 			{
-				if ($db_x != 'cot_')
+				if ($db_x != 'cot_' && preg_match('#`cot_(\w+)`#', $query, $mt))
 				{
-					$query = str_replace('`cot_', '`'.$db_x, $query);
+					if (isset($GLOBALS['db_' . $mt[1]]))
+					{
+						$table_name = $GLOBALS['db_' . $mt[1]];
+						$query = str_replace($mt[0], "`$table_name`", $query);
+					}
+					else
+					{
+						$query = str_replace('`cot_', '`'.$db_x, $query);
+					}
 				}
 				$result = $this->query($query);
 				if (!$result)

@@ -2,11 +2,9 @@
 /**
  * Content Internationalization API
  *
- * @package i18n
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2010-2013
- * @license BSD License
+ * @package I18n
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -14,10 +12,9 @@ defined('COT_CODE') or die('Wrong URL');
 require_once cot_langfile('i18n', 'plug');
 require_once cot_incfile('i18n', 'plug', 'resources');
 
-global $db_i18n_locales, $db_i18n_pages, $db_i18n_structure, $db_x;
-$db_i18n_locales = (isset($db_i18n_locales)) ? $db_i18n_locales : $db_x . 'i18n_locales';
-$db_i18n_pages = (isset($db_i18n_pages)) ? $db_i18n_pages : $db_x . 'i18n_pages';
-$db_i18n_structure = (isset($db_i18n_structure)) ? $db_i18n_structure : $db_x . 'i18n_structure';
+cot::$db->registerTable('i18n_locales');
+cot::$db->registerTable('i18n_pages');
+cot::$db->registerTable('i18n_structure');
 
 /**
  * Builds internationalized category path

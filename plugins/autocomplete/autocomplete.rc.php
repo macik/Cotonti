@@ -8,11 +8,9 @@ Hooks=rc
 /**
  * Header file for Autocomplete plugin
  *
- * @package autocomplete
- * @version 0.8.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2010-2013
- * @license BSD
+ * @package Autocomplete
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -28,9 +26,9 @@ if ($cfg['jquery'] && $cfg['turnajax'] && $cfg['plugin']['autocomplete']['autoco
 
 	cot_rc_add_embed('autocomplete', '
 		$(document).ready(function(){
-		 $(".userinput").live("focus", function() {
-		$(".userinput").autocomplete("plug.php?r=autocomplete", {multiple: true, minChars: '.$cfg['plugin']['autocomplete']['autocomplete'].'});
-		});
+		    $( document ).on( "focus", ".userinput", function() {
+		        $(".userinput").autocomplete("index.php?r=autocomplete", {multiple: true, minChars: '.$cfg['plugin']['autocomplete']['autocomplete'].'});
+		    });
 		});
 	');
 }

@@ -9,11 +9,9 @@ Tags=header.tpl:{HEADER_USER_PMS},{HEADER_USER_PMREMINDER}
 /**
  * PM header notices
  *
- * @package pm
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package PM
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL.');
@@ -40,5 +38,5 @@ if ($usr['id'] > 0)
 
 if ($cfg['pm']['css'] && $env['ext'] == 'pm')
 {
-	cot_rc_link_file($cfg['modules_dir'] . '/pm/tpl/pm.css');
+	Resources::linkFile($cfg['modules_dir'] . '/pm/tpl/pm.css');
 }

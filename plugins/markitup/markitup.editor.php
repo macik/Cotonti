@@ -8,11 +8,9 @@ Hooks=editor
 /**
  * MarkItUp! connector for Cotonti
  *
- * @package markitup
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package MarItUp
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -57,7 +55,7 @@ if ($cfg['jquery'])
 		if (document.createStyleSheet) { document.createStyleSheet("'.$mkup_skin_path.'"); } else { $("head").append(\''.$mkup_skin.'\'); }
 		if (document.createStyleSheet) { document.createStyleSheet("'.$mkup_style_path.'"); } else { $("head").append(\''.$mkup_style.'\'); }
 		mySettings.previewAutorefresh = '.$autorefresh.';
-		mySettings.previewParserPath = "plug.php?r=markitup&x=" + $("input[name=\'x\'][type=\'hidden\']").eq(0).val();
+		mySettings.previewParserPath = "index.php?r=markitup&x=" + $("input[name=\'x\'][type=\'hidden\']").eq(0).val();
 		mediSettings.previewAutorefresh = '.$autorefresh.';
 		mediSettings.previewParserPath = mySettings.previewParserPath;
 		miniSettings.previewAutorefresh = '.$autorefresh.';

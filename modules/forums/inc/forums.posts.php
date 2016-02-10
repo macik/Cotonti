@@ -3,11 +3,9 @@
 /**
  * Forums posts display.
  *
- * @package forums
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD License
+ * @package Forums
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 defined('COT_CODE') or die('Wrong URL');
 
@@ -47,10 +45,11 @@ if ((!empty($n) && !empty($q)) || !empty($p) || !empty($id))
 	elseif (!empty($p) || !empty($id))
 	{
 		$p = ($p > 0) ? $p : $id;
-		$sql_forums = $db->query("SELECT fp_id, fp_topicid, fp_cat, fp_posterid, fp_creation FROM $db_forum_posts WHERE fp_id = $p LIMIT 1");
+		$sql_forums = $db->query("SELECT fp_id, fp_topicid, fp_cat, fp_posterid, fp_creation FROM $db_forum_posts WHERE fp_id = ?", $p);
 	}
-	if (isset($sql_forums) && $row = $sql_forums->fetch())
+	if (isset($sql_forums) && is_object($sql_forums) && $sql_forums->rowCount() > 0)
 	{
+		$row = $sql_forums->fetch();
 		$p = $row['fp_id'];
 		$q = $row['fp_topicid'];
 		$s = $row['fp_cat'];
@@ -313,9 +312,9 @@ $order = 'fp_id ASC';
 $join_columns = '';
 $join_condition = '';
 
-if (!empty($p) || !empty($id))
+if (!empty($p))
 {
-	$p_id = empty($p) ? $id : $p;
+	$p_id = $p;
 	$postsbefore = $db->query("SELECT COUNT(*) FROM $db_forum_posts AS p $join_condition WHERE " . implode(' AND ', $where) . " AND fp_id < $p_id")->fetchColumn();
 	$d = $cfg['forums']['maxpostsperpage'] * floor($postsbefore / $cfg['forums']['maxpostsperpage']);
 	$durl = $cfg['easypagenav'] ? floor($d / $cfg['forums']['maxpostsperpage']) + 1 : $d;
@@ -337,7 +336,7 @@ $where = array_diff($where, array(''));
 $totalposts = $db->query("SELECT COUNT(*) FROM $db_forum_posts AS p $join_condition WHERE " . implode(' AND ', $where))->fetchColumn();
 
 // Disallow accessing non-existent pages
-if ($totalposts > 0 && $d > $totalposts)
+if (empty($id) && $totalposts > 0 && $d > $totalposts)
 {
 	cot_die_message(404);
 }
@@ -456,7 +455,7 @@ $pagenav = cot_pagenav('forums', "m=posts&q=$q", $d, $totalposts, $cfg['forums']
 $jumpbox[cot_url('forums')] = $L['Forums'];
 foreach ($structure['forums'] as $key => $val)
 {
-	if (cot_auth('forums', $key, 'R'))
+	if (cot_auth('forums', $key, 'R') && strpos($val['path'], '.'))
 	{
 		($val['tpath'] == $s) || $movebox[$key] = $val['tpath'];
 		$jumpbox[cot_url('forums', 'm=topics&s=' . $key, '', true)] = $val['tpath'];
@@ -518,7 +517,7 @@ if (($cfg['forums']['enablereplyform'] || $lastpage) && !$rowt['ft_state'] && $u
 
 	$t->assign(array(
 		'FORUMS_POSTS_NEWPOST_SEND' => cot_url('forums', "m=posts&a=newpost&s=" . $s . "&q=" . $q),
-		'FORUMS_POSTS_NEWPOST_TEXT' => $R['forums_code_newpost_mark'] . cot_textarea('rmsgtext', $rmsg['fp_text'], 16, 56, '', 'input_textarea_medieditor'),
+		'FORUMS_POSTS_NEWPOST_TEXT' => $R['forums_code_newpost_mark'] . cot_textarea('rmsgtext', $rmsg['fp_text'], 16, 56, '', 'input_textarea_'.$minimaxieditor),
             	'FORUMS_POSTS_NEWPOST_EDITTIMEOUT' => cot_build_timegap(0, $cfg['forums']['edittimeout'] * 3600)
 	));
 
@@ -571,8 +570,42 @@ $t->assign(array(
 	'FORUMS_POSTS_PAGENEXT' => $pagenav['next'],
 	'FORUMS_POSTS_CURRENTPAGE' => $pagenav['current'],
 	'FORUMS_POSTS_TOTALPAGES' => ceil($totalposts / $cfg['forums']['maxpostsperpage']),
-	'FORUMS_POSTS_JUMPBOX' => cot_selectbox($s, 'jumpbox', array_keys($jumpbox), array_values($jumpbox), false, 'onchange="redirect(this)"'),
+	'FORUMS_POSTS_JUMPBOX' => cot_selectbox($s, 'jumpbox', array_keys($jumpbox), array_values($jumpbox), false, 'onchange="redirect(this)"')
 ));
+
+// Topic icon
+$rowt['ft_icon'] = 'posts';
+if ($rowt['ft_updated'] > $usr['lastvisit'] && $usr['id']>0)
+{
+	$rowt['ft_icon'] .= '_new';
+	$rowt['ft_postisnew'] = TRUE;
+}
+
+if ($rowt['ft_postcount'] >= $cfg['forums']['hottopictrigger'] && !$rowt['ft_state'] && !$rowt['ft_sticky'])
+{
+	$rowt['ft_icon'] = ($rowt['ft_postisnew']) ? 'posts_new_hot' : 'posts_hot';
+}
+else
+{
+	$rowt['ft_icon'] .= ($rowt['ft_sticky']) ? '_sticky' : '';
+	$rowt['ft_icon'] .=  ($rowt['ft_state']) ? '_locked' : '';
+}
+
+$rowt['ft_icon_type'] = $rowt['ft_icon'];
+$rowt['ft_icon'] = cot_rc('forums_icon_topic', array('icon' => $rowt['ft_icon']));
+
+$rowt['ft_icon_type_ex'] = $rowt['ft_icon_type'];
+if ($rowt['ft_user_posted'])
+{
+	$rowt['ft_icon_type_ex'] .= '_posted';
+}
+
+$t->assign(array(
+	'FORUMS_POSTS_ICON' => $rowt['ft_icon'],
+	'FORUMS_POSTS_ICON_TYPE' => $rowt['ft_icon_type'],
+	'FORUMS_POSTS_ICON_TYPE_EX' => $rowt['ft_icon_type_ex']
+));
+
 
 foreach ($cot_extrafields[$db_forum_topics] as $exfld)
 {

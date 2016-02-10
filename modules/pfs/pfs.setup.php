@@ -6,7 +6,7 @@ Description=Personal File Space
 Version=0.9.11
 Date=2012-07-01
 Author=Neocrome & Cotonti Team
-Copyright=(c) Cotonti Team 2008-2013
+Copyright=(c) Cotonti Team 2008-2014
 Notes=BSD License
 Auth_guests=R
 Lock_guests=W12345A
@@ -39,9 +39,7 @@ th_textsize=18:range:0,5:1:
 /**
  * PFS setup file
  *
- * @package pfs
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package PFS
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */

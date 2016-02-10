@@ -3,11 +3,9 @@
 /**
  * Plugin and Module Management API
  *
- * @package Cotonti
- * @version 0.9.12
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2010-2013
- * @license BSD
+ * @package API - Extensions
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -42,7 +40,7 @@ $cot_ext_ignore_parts = array('configure', 'install', 'setup', 'uninstall');
  * @param string $sql_pattern SQL patch file name pattern (PCRE)
  * @param string $php_pattern PHP patch file name pattern (PCRE)
  * @return mixed The function returns TRUE if there are not patches to apply,
- * FALSE if an error occured while patching or a string containing version
+ * FALSE if an error occurred while patching or a string containing version
  * number of the latest applied patch if patching was successful.
  */
 function cot_apply_patches($directory, $from_ver,
@@ -548,7 +546,7 @@ function cot_extension_install($name, $is_module = false, $update = false, $forc
 			else
 			{
 				cot_error(cot_rc('ext_executed_php',
-					array('ret' => $L['Error'])));
+					array('ret' => $msg ? $msg : $L['Error'])));
 				return false;
 			}
 		}
@@ -585,7 +583,7 @@ function cot_extension_install($name, $is_module = false, $update = false, $forc
  */
 function cot_extension_uninstall($name, $is_module = false)
 {
-	global $cfg, $db_auth, $db_config, $db_users, $db_updates, $cache, $db, $db_x, $db_plugins, $cot_plugins, $cot_plugins_active, $cot_plugins_enabled, $cot_modules, $env;
+	global $cfg, $db_auth, $db_config, $db_users, $db_updates, $cache, $db, $db_x, $db_plugins, $cot_plugins, $cot_plugins_active, $cot_plugins_enabled, $cot_modules, $env, $structure, $db_structure;
 
 	$path = $is_module ? $cfg['modules_dir'] . "/$name" : $cfg['plugins_dir']
 		. "/$name";
@@ -615,6 +613,13 @@ function cot_extension_uninstall($name, $is_module = false)
 	}
 	cot_message('ext_auth_uninstalled');
 	cot_message('ext_config_uninstalled');
+
+	// Remove extension structure
+	if ($is_module && isset($structure[$name]))
+	{
+		$db->delete($db_structure, "structure_area = ?", $name);
+		unset($structure[$name]);
+	}
 
 	// Run SQL script if present
 	if (file_exists($path . "/setup/$name.uninstall.sql"))
@@ -726,7 +731,7 @@ function cot_file_phpdoc($filename)
 }
 
 /**
- * Extract info from SED file headers
+ * Extract info from COT file headers
  *
  * @param string $file File path
  * @param string $limiter Tag name
@@ -755,12 +760,10 @@ function cot_infoget($file, $limiter = 'COT_EXT', $maxsize = 32768)
 			foreach ($lines as $line)
 			{
 				$line = ltrim($line, " */");
-				$linex = explode('=', $line);
-				$ii = 1;
-				while (!empty($linex[$ii]))
+				$linex = preg_split('/\s*\=\s*/', trim($line), 2);
+				if ($linex[0])
 				{
-					$result[$linex[0]] .= trim($linex[$ii]);
-					$ii++;
+					$result[$linex[0]] = $linex[1];
 				}
 			}
 		}
@@ -1016,19 +1019,23 @@ function cot_plugin_add($hook_bindings, $name, $title, $is_module = false)
 /**
  * Suspends a plugin or one of its parts
  *
- * @param string $name Module or plugin name
- * @param int $binding_id ID of the binding to supsend or 0 to suspend all
- * @return int Number of bindings suspended
+ * @param  string  $name Module or plugin name
+ * @param  mixed   $part ID of the binding to supsend or 0 to suspend all; if part name is passed, then that part is suspended
+ * @return integer       Number of bindings suspended
  * @global CotDB $db
  */
-function cot_plugin_pause($name, $binding_id = 0)
+function cot_plugin_pause($name, $part = 0)
 {
 	global $db, $db_plugins;
 
 	$condition = "pl_code = '$name'";
-	if ($binding_id > 0)
+	if (is_numeric($part) && $part > 0)
 	{
-		$condition .= " AND pl_id = $binding_id";
+		$condition .= " AND pl_id = $part";
+	}
+	elseif (is_string($part))
+	{
+		$condition .= " AND pl_part = " . $db->quote($part);
 	}
 
 	return $db->update($db_plugins, array('pl_active' => 0), $condition);
@@ -1058,19 +1065,23 @@ function cot_plugin_remove($name, $binding_id = 0)
 /**
  * Resumes a suspended plugin or one of its parts
  *
- * @param string $name Module or plugin name
- * @param int $binding_id ID of the binding to resume or 0 to resume all
- * @return int Number of bindings resumed
+ * @param  string  $name Module or plugin name
+ * @param  mixed   $part ID of the binding to resume or 0 to resume all; if part name is passed, then that part is resumed
+ * @return integer       Number of bindings suspended
  * @global CotDB $db
  */
-function cot_plugin_resume($name, $binding_id = 0)
+function cot_plugin_resume($name, $part = 0)
 {
 	global $db, $db_plugins;
 
 	$condition = "pl_code = '$name'";
-	if ($binding_id > 0)
+	if (is_numeric($part) && $part > 0)
 	{
-		$condition .= " AND pl_id = $binding_id";
+		$condition .= " AND pl_id = $part";
+	}
+	elseif (is_string($part))
+	{
+		$condition .= " AND pl_part = " . $db->quote($part);
 	}
 
 	return $db->update($db_plugins, array('pl_active' => 1), $condition);

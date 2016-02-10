@@ -8,16 +8,13 @@ Hooks=rc
 /**
  * Head resources
  *
- * @package tags
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package Tags
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
 
-//cot_headrc_load_file($cfg['plugins_dir'] . '/tags/style.css', 'global', 'css');
 if ($cfg['jquery'] && $cfg['turnajax'] && $cfg['plugin']['autocomplete']['autocomplete'] > 0)
 {
 	cot_rc_add_embed('tags.autocomplete', '$(document).ready(function(){

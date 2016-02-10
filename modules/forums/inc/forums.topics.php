@@ -2,11 +2,9 @@
 /**
  * Forums topics display.
  *
- * @package forums
- * @version 0.0.3
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD License
+ * @package Forums
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -57,7 +55,7 @@ if ($usr['isadmin'] && !empty($q) && !empty($a))
 			$ghost = cot_import('ghost','P','BOL');
 
 			$num = $db->query("SELECT COUNT(*) FROM $db_forum_posts WHERE fp_cat=".$db->quote($s)." AND fp_topicid = $q")->fetchColumn();
-			if ($num < 1 || $s == $ns)
+			if ($num < 1 || $s == $ns || !strpos($structure['forums'][$ns]['path'], '.'))
 			{
 				cot_die();
 			}

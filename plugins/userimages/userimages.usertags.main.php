@@ -8,21 +8,24 @@ Hooks=usertags.main
 /**
  * Avatar and photo for users
  *
- * @package userimages
- * @version 1.1
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package UserImages
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
 
 require_once cot_incfile('userimages', 'plug');
 require_once cot_incfile('userimages', 'plug', 'resources');
-$userimages = cot_userimages_config_get();
 
-foreach($userimages as $code => $settings)
+if (is_array($user_data))
 {
-	$temp_array[strtoupper($code)] = cot_userimages_build($user_data['user_'.$code], $code);
-	$temp_array[strtoupper($code).'_SRC'] = $user_data['user_'.$code];
+	$userimages = cot_userimages_config_get();
+
+	foreach ($userimages as $code => $settings)
+	{
+		$uimage = $user_data['user_' . $code];
+		$temp_array[strtoupper($code) . '_SRC'] = $uimage;
+		$temp_array[strtoupper($code)] = is_file($uimage) ? cot_userimages_build($user_data['user_' . $code], $code) : '';
+	}
 }

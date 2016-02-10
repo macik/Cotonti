@@ -3,11 +3,61 @@
  * Index loader
  *
  * @package Cotonti
- * @version 0.9.4
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
+
+if (php_sapi_name() == 'cli-server')
+{
+	// Embedded PHP webserver routing
+	$tmp = explode('?', $_SERVER['REQUEST_URI']);
+	$REQUEST_FILENAME = mb_substr($tmp[0], 1);
+	unset($tmp);
+	if (file_exists($REQUEST_FILENAME) && !preg_match('#\.php$#', $REQUEST_FILENAME))
+	{
+		// Transfer static file if exists
+		return false;
+	}
+	// Language selector
+	$langs = array_map(
+		create_function('$dir', 'return str_replace("lang/", "", $dir);'),
+		glob('lang/??', GLOB_ONLYDIR)
+	);
+	if (preg_match('#^(' . join('|', $langs) . ')/(.*)$#', $REQUEST_FILENAME, $mt))
+	{
+		$REQUEST_FILENAME = $mt[2];
+		$_GET['l'] = $mt[1];
+	}
+	// Sitemap shortcut
+	if ($REQUEST_FILENAME === 'sitemap.xml')
+	{
+		$_GET['r'] = 'sitemap';
+	}
+	// Admin area and message are special scripts
+	if (preg_match('#^admin/([a-z0-9]+)#', $REQUEST_FILENAME, $mt))
+	{
+		$_GET['m'] = $mt[1];
+		include 'admin.php';
+		exit;
+	}
+	if (preg_match('#^(admin|login|message)(/|$)#', $REQUEST_FILENAME, $mt))
+	{
+		include $mt[1].'.php';
+		exit;
+	}
+	// PHP files have priority
+	if (preg_match('#\.php$#', $REQUEST_FILENAME) && $REQUEST_FILENAME !== 'index.php')
+	{
+		include $REQUEST_FILENAME;
+		exit;
+	}
+	// All the rest goes through standard rewrite gateway
+	if ($REQUEST_FILENAME !== 'index.php')
+	{
+		$_GET['rwr'] = $REQUEST_FILENAME;
+	}
+	unset($REQUEST_FILENAME, $langs, $mt);
+}
 
 // Redirect to install if config is missing
 if (!file_exists('./datas/config.php'))
@@ -36,18 +86,18 @@ require_once $cfg['system_dir'] . '/cotemplate.php';
 // Bootstrap
 require_once $cfg['system_dir'] . '/common.php';
 
-// Support for ajax and popup hooked plugins
-if (empty($_GET['e']) && !empty($_GET['r']))
+$ext = isset($_GET['e']) ? cot_import('e', 'G', 'ALP') : false;
+$ajax = cot_import('r', 'G', 'ALP');
+$popup = cot_import('o', 'G', 'ALP');
+if (!$ext)
 {
-	$_GET['e'] = $_GET['r'];
+	// Support for ajax and popup hooked plugins
+	$ext = $ajax ? $ajax : ($popup ? $popup : $ext);
 }
-if (empty($_GET['e']) && !empty($_GET['o']))
-{
-	$_GET['e'] = $_GET['o'];
-}
+unset ($ajax, $popup);
 
 // Detect selected extension
-if (empty($_GET['e']))
+if ($ext === false)
 {
 	// Default environment for index module
 	define('COT_MODULE', true);
@@ -57,16 +107,16 @@ if (empty($_GET['e']))
 else
 {
 	$found = false;
-	if (preg_match('`^\w+$`', $_GET['e']))
+	if (preg_match('`^\w+$`', $ext))
 	{
 		$module_found = false;
 		$plugin_found = false;
-		if (file_exists($cfg['modules_dir'] . '/' . $_GET['e']) && isset($cot_modules[$_GET['e']]))
+		if (file_exists($cfg['modules_dir'] . '/' . $ext) && isset($cot_modules[$ext]))
 		{
 			$module_found = true;
 			$found = true;
 		}
-		if (file_exists($cfg['plugins_dir'] . '/' . $_GET['e']))
+		if (file_exists($cfg['plugins_dir'] . '/' . $ext))
 		{
 			$plugin_found = true;
 			$found = true;
@@ -74,7 +124,7 @@ else
 		if ($module_found && $plugin_found)
 		{
 			// Need to query the db to check which one is installed
-			$res = $db->query("SELECT ct_plug FROM $db_core WHERE ct_code = ? LIMIT 1", $_GET['e']);
+			$res = $db->query("SELECT ct_plug FROM $db_core WHERE ct_code = ? LIMIT 1", $ext);
 			if ($res->rowCount() == 1)
 			{
 				if ((int)$res->fetchColumn())
@@ -105,7 +155,7 @@ else
 	}
 	if ($found)
 	{
-		$env['ext'] = $_GET['e'];
+		$env['ext'] = $ext;
 	}
 	else
 	{
@@ -114,7 +164,7 @@ else
 		exit;
 	}
 }
-
+unset($ext);
 
 // Load the requested extension
 if ($env['type'] == 'plug')

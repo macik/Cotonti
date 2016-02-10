@@ -3,10 +3,10 @@
 [BEGIN_COT_EXT]
 Name=Forums
 Description=Cotonti Bulletin Board Module
-Version=0.9.15
-Date=2011-08-19
+Version=0.9.18
+Date=2015-01-15
 Author=Neocrome & Cotonti Team
-Copyright=(c) Cotonti Team 2008-2011
+Copyright=(c) Cotonti Team 2008-2015
 Notes=BSD License
 Auth_guests=R
 Lock_guests=A
@@ -32,6 +32,7 @@ enablereplyform=11:radio::0:
 edittimeout=12:select:0,0.25,1,2,4,12,24,48,72,168:0:
 title_posts=31:string::{TITLE} - {SECTION} - {FORUM}:
 title_topics=32:string::{SECTION} - {FORUM}:
+minimaxieditor=33:select:minieditor,medieditor,editor:medieditor:
 [END_COT_EXT_CONFIG]
 
 [BEGIN_COT_EXT_CONFIG_STRUCTURE]
@@ -53,9 +54,7 @@ metadesc=08:string:::
 /**
  * Forums module setup file
  *
- * @package forums
- * @version 0.9.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package Forums
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */

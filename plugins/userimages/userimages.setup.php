@@ -5,10 +5,10 @@ Code=userimages
 Name=User Images
 Category=files-media
 Description=Avatar and photo for users
-Version=1.21
-Date=2010-nov-08
+Version=1.3.1
+Date=2016-jan-13
 Author=Koradhil, Cotonti Team
-Copyright=Copyright (c) Cotonti Team 2008-2011
+Copyright=Copyright (c) Cotonti Team 2008-2015
 Notes=BSD License
 SQL=
 Auth_guests=R
@@ -21,11 +21,9 @@ Lock_members=12345
 /**
  * Avatar and photo for users
  *
- * @package userimages
- * @version 1.2
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package UserImages
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');

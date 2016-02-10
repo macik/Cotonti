@@ -8,11 +8,9 @@ Hooks=search.page.catlist
 /**
  * Inserts translated categories into search category list
  *
- * @package i18n
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2010-2013
- * @license BSD License
+ * @package I18n
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -34,22 +32,22 @@ if (is_array($i18n_structure) && count($i18n_structure) > 0)
 
 	// Extract previously selected options, they are handled separately
 	$i18n_search_cats = array();
-	if (is_array($rsearch['pag']['sub']))
+	if (is_array($rs['pagsub']))
 	{
-		$subcnt = count($rsearch['pag']['sub']);
+		$subcnt = count($rs['pagsub']);
 		$tmp = array();
 		for ($i = 0; $i < $subcnt; $i++)
 		{
-			if (mb_strpos($rsearch['pag']['sub'][$i], ':') !== false)
+			if (mb_strpos($rs['pagsub'][$i], ':') !== false)
 			{
-				list ($cat, $lc) = explode(':', $rsearch['pag']['sub'][$i]);
+				list ($cat, $lc) = explode(':', $rs['pagsub'][$i]);
 				$i18n_search_cats[$lc][] = $cat;
 			}
 			else
 			{
-				$tmp[] = $rsearch['pag']['sub'][$i];
+				$tmp[] = $rs['pagsub'][$i];
 			}
 		}
-		$rsearch['pag']['sub'] = $tmp;
+		$rs['pagsub'] = $tmp;
 	}
 }

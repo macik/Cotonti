@@ -2,11 +2,9 @@
 /**
  * Install script
  *
- * @package Cotonti
- * @version 0.9.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package Install
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 // Environment setup
@@ -44,7 +42,6 @@ $cfg['xtpl_cache'] = false;
 require_once $cfg['system_dir'].'/functions.php';
 require_once $cfg['system_dir'] . '/cotemplate.php';
 require_once 'system/debug.php';
-
 
 if (isset($cfg['new_install']) && $cfg['new_install'])
 {
@@ -85,7 +82,7 @@ if (isset($cfg['new_install']) && $cfg['new_install'])
 		$lang = cot_import('lang', 'P', 'ALP');
 		if (empty($lang))
 		{
-			$lang = 'en';
+			$lang = cot_lang_determine();
 		}
 	}
 
@@ -95,7 +92,7 @@ if (isset($cfg['new_install']) && $cfg['new_install'])
 	}
 
 	require_once cot_langfile('main', 'core');
-	require_once $cfg['system_dir'] . '/resources.php';
+	require_once $cfg['system_dir'] . '/resources.rc.php';
 }
 else
 {
@@ -106,6 +103,8 @@ else
 
 	$dbc_port = empty($cfg['mysqlport']) ? '' : ';port='.$cfg['mysqlport'];
 	$db = new CotDB('mysql:host='.$cfg['mysqlhost'].$dbc_port.';dbname='.$cfg['mysqldb'], $cfg['mysqluser'], $cfg['mysqlpassword']);
+
+	cot::init();
 
 	$sql_install = @$db->query("SHOW TABLES LIKE '$db_updates'");
 

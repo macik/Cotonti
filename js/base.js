@@ -8,11 +8,11 @@ function getBaseHref() {
 }
 
 function popup(code, w, h){
-    window.open(getBaseHref() + 'plug.php?o=' + code, '', 'toolbar=0,location=0,directories=0,menuBar=0,resizable=0,scrollbars=yes,width=' + w + ',height=' + h + ',left=32,top=16');
+    window.open(getBaseHref() + 'index.php?o=' + code, '', 'toolbar=0,location=0,directories=0,menuBar=0,resizable=0,scrollbars=yes,width=' + w + ',height=' + h + ',left=32,top=16');
 }
 
 function pfs(id, c1, c2, parser){
-    window.open(getBaseHref() + 'pfs.php?userid=' + id + '&c1=' + c1 + '&c2=' + c2 + '&parser=' + parser, 'PFS', 'status=1, toolbar=0,location=0,directories=0,menuBar=0,resizable=1,scrollbars=yes,width=754,height=512,left=32,top=16');
+    window.open(getBaseHref() + 'index.php?e=pfs&userid=' + id + '&c1=' + c1 + '&c2=' + c2 + '&parser=' + parser, 'PFS', 'status=1, toolbar=0,location=0,directories=0,menuBar=0,resizable=1,scrollbars=yes,width=754,height=512,left=32,top=16');
 }
 
 function redirect(url){
@@ -66,7 +66,8 @@ function insertText(docObj, fieldName, value) {
 
 // Array of ajax error handlers
 // Example of use:
-// ajaxErrorHandlers.push({divId: 'ajaxBlock', func: myErrorHandler});
+// ajaxErrorHandlers.push({func: myErrorHandler});
+// ajaxSuccessHandlers.push({func: mySuccessHandler});
 var ajaxErrorHandlers = new Array();
 var ajaxSuccessHandlers = new Array();
 // AJAX enablement defaults to false
@@ -107,17 +108,29 @@ function ajaxSend(settings) {
 		},
 		success: function(msg) {
 			if (!settings.nonshowloading) $('#loading').remove();
-			$('#' + settings.divId).hide().html(msg).fadeIn(500);
+			if (!settings.nonshowfadein) 
+				$('#' + settings.divId).hide().html(msg).fadeIn(500); 
+			else
+				$('#' + settings.divId).html(msg); 
 			for (var i = 0; i < ajaxSuccessHandlers.length; i++) {
-				ajaxSuccessHandlers[i]();
+				if(ajaxSuccessHandlers[i].func)
+					ajaxSuccessHandlers[i].func(msg);
+				else
+					ajaxSuccessHandlers[i](msg);
 			}
 		},
 		error: function(msg) {
 			if (!settings.nonshowloading) $('#loading').remove();
+			if (!settings.nonshowfadein) 
+				$('#' + settings.divId).hide().html(msg).fadeIn(500);
+			else
+				$('#' + settings.divId).html(msg);
 			if (ajaxErrorHandlers.length > 0) {
 				for (var i = 0; i < ajaxErrorHandlers.length; i++) {
-					if (ajaxErrorHandlers[i].divId == settings.divId)
+					if (ajaxErrorHandlers[i].func)
 						ajaxErrorHandlers[i].func(msg);
+					else
+						ajaxErrorHandlers[i](msg);
 				}
 			} else {
 				alert('AJAX error: ' + msg);
@@ -136,10 +149,11 @@ function ajaxSend(settings) {
  * @type bool
  */
 function ajaxPageLoad(hash) {
+    if(hash != '') hash.replace(/^#/, '');
 	var m = hash.match(/^get(-.*?)?;(.*)$/);
 	if (m) {
 		// ajax bookmark
-		var url = m[2].indexOf(';') > 0 ? m[2].replace(';', '?') : ajaxCurrentBase + '?' + m[2];
+        var url = m[2].indexOf(';') > 0 ? m[2].replace(';', '?') : ajaxCurrentBase + '?' + decodeURIComponent(m[2]);
 		ajaxUsed = true;
 		return ajaxSend({
 			method: 'GET',
@@ -247,12 +261,12 @@ function bindHandlers() {
 			if ($(this).attr('method').toUpperCase() == 'POST') {
 				ajaxFormLoad(ajaxMakeHash($(this).attr('action').replace(/#.*$/, ''), $(this).attr('class'), 'post'), $(this).attr('id'));
 			} else {
-				$.historyLoad(ajaxMakeHash($(this).attr('action').replace(/#.*$/, ''), $(this).attr('class'), $(this).serialize()));
+				window.location.hash = ajaxMakeHash($(this).attr('action').replace(/#.*$/, ''), $(this).attr('class'), $(this).serialize());
 			}
 			return ajaxError;
 		});
 		$('body').on('click', 'a.ajax', function() {
-			$.historyLoad(ajaxMakeHash($(this).attr('href').replace(/#.*$/, ''), $(this).attr('rel')));
+			window.location.hash = ajaxMakeHash($(this).attr('href').replace(/#.*$/, ''), $(this).attr('rel'));
 			return ajaxError;
 		});
 
@@ -273,6 +287,12 @@ function bindHandlers() {
 				return true;
 			}
 		});
+
+		// Listen to hash change events
+		$(window).on('hashchange', function() {
+			ajaxPageLoad(window.location.hash.replace(/^#/, ''));
+		});
+
 		$('body').on('click', 'a#confirmNo', function() {
 			if ($("#confirmBox").is(".jqmWindow"))
 			{
@@ -289,12 +309,16 @@ function bindHandlers() {
 }
 
 if (typeof jQuery != 'undefined') {
-	$(document).ready(function() {
-		bindHandlers();
-		if (ajaxEnabled) {
-			$.historyInit(ajaxPageLoad, location.hash);
-		}
-	});
+    $(document).ready(function() {
+        // If page was loaded with hash
+        if (ajaxEnabled) {
+            if(window.location.hash != '') {
+                ajaxPageLoad(window.location.hash.replace(/^#/, ''));
+            }
+        }
+
+        bindHandlers();
+    });
 }
 
 window.name = 'main';

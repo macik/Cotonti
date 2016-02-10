@@ -1,10 +1,8 @@
 <?php
 /**
  * @package Cotonti
- * @version 0.9.8
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -62,26 +60,27 @@ if ($_SERVER['HTTP_HOST'] == $url['host']
 	|| $_SERVER['HTTP_HOST'] != 'www.' . $sys['domain']
 		&& preg_match('`^.+\.'.preg_quote($sys['domain']).'$`i', $_SERVER['HTTP_HOST']))
 {
-	$sys['host'] = preg_match('#^[\w\p{L}\.\-]+$#u', $_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $url['host'];
+	$sys['host'] = preg_match('#^[\w\p{L}\.\-]+(:\d+)?$#u', $_SERVER['HTTP_HOST']) ? preg_replace('#^([\w\p{L}\.\-]+)(:\d+)?$#u', '$1', $_SERVER['HTTP_HOST']) : $url['host'];
 	$sys['domain'] = preg_replace('#^www\.#', '', $sys['host']);
+	$sys['port'] = $_SERVER['SERVER_PORT'] == 80 ? '' : $_SERVER['SERVER_PORT'];
 }
 else
 {
 	$sys['host'] = $url['host'];
+	$sys['port'] = empty($url['port']) || $_SERVER['SERVER_PORT'] == 80 ? '' : $url['port'];
 }
 if ($sys['site_uri'][mb_strlen($sys['site_uri']) - 1] != '/') $sys['site_uri'] .= '/';
 define('COT_SITE_URI', $sys['site_uri']);
 // Absolute site url
-$sys['port'] = empty($url['port']) || $_SERVER['SERVER_PORT'] == 80 ? '' : ($cfg['multihost'] ? '' : ':' . $url['port']);
-$sys['abs_url'] = $sys['scheme'] . '://' . $sys['host'] . $sys['port'] . $sys['site_uri'];
-$sys['canonical_url'] = $sys['scheme'] . '://' . $sys['host'] . $sys['port'] . $_SERVER['REQUEST_URI'];
+$sys['abs_url'] = $sys['scheme'] . '://' . $sys['host'] . ($sys['port']?':'.$sys['port']:'') . $sys['site_uri'];
+$sys['canonical_url'] = $sys['scheme'] . '://' . $sys['host'] . ($sys['port']?':'.$sys['port']:'') . cot_url_sanitize($_SERVER['REQUEST_URI']);
 define('COT_ABSOLUTE_URL', $sys['abs_url']);
 // Reassemble mainurl if necessary
 if ($cfg['multihost'])
 {
 	$cfg['mainurl'] = mb_substr($sys['abs_url'], 0, -1);
-	session_set_cookie_params(0, $sys['site_uri'], '.'.$sys['domain']);
 }
+session_set_cookie_params(0, $sys['site_uri'], '.'.$sys['domain']);
 
 session_start();
 
@@ -90,11 +89,12 @@ cot_unregister_globals();
 /* =========== Early page cache ==========*/
 if ($cfg['cache'] && !$cfg['devmode'])
 {
-	require_once $cfg['system_dir'].'/cache.php';
+	require_once $cfg['custom_cache'] ? $cfg['custom_cache'] : $cfg['system_dir'].'/cache.php';
 	$cache = new Cache();
-	if ($_SERVER['REQUEST_METHOD'] == 'GET' && empty($_COOKIE[$site_id]) && empty($_SESSION[$site_id]) && !defined('COT_AUTH') && !defined('COT_ADMIN') && !defined('COT_INSTALL') && !defined('COT_MESSAGE'))
+	if ($_SERVER['REQUEST_METHOD'] == 'GET' && !cot_import($sys['site_id'], 'COOKIE', 'ALP') && empty($_SESSION[$sys['site_id']]) && !defined('COT_AUTH') && !defined('COT_ADMIN') && !defined('COT_INSTALL') && !defined('COT_MESSAGE'))
 	{
-		$cache_ext = empty($_GET['e']) ? 'index' : preg_replace('#\W#', '', $_GET['e']);
+		$ext = cot_import('e', 'G', 'ALP');
+		$cache_ext = !$ext ? 'index' : preg_replace('#\W#', '', $ext);
 		if ($cfg['cache_' . $cache_ext])
 		{
 			$cache->page->init($cache_ext, $cfg['defaulttheme']);
@@ -122,6 +122,9 @@ catch (PDOException $e)
 		MySQL error : '.$e->getMessage());
 }
 unset($cfg['mysqlhost'], $cfg['mysqluser'], $cfg['mysqlpassword'], $dbc_port);
+
+// Here we can init our globals facade
+cot::init();
 
 $cache && $cache->init();
 
@@ -194,7 +197,7 @@ $sys['url_redirect'] = 'redirect='.$sys['uri_redir'];
 $redirect = preg_replace('/[^a-zA-Z0-9_=\/]/', '', cot_import('redirect','G','TXT'));
 $out['uri'] = str_replace('&', '&amp;', $sys['uri_curr']);
 
-define('COT_AJAX', !empty($_SERVER['HTTP_X_REQUESTED_WITH']) || !empty($_SERVER['X-Requested-With']) || $_GET['_ajax'] == 1);
+define('COT_AJAX', !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest' || !empty($_SERVER['X-Requested-With']) && strtolower($_SERVER['X-Requested-With']) == 'xmlhttprequest' || cot_import('_ajax', 'G', 'INT') == 1);
 // Other system variables
 $sys['parser'] = $cfg['parser'];
 
@@ -312,9 +315,10 @@ $usr['timezonename'] = $cfg['defaulttimezone'];
 $usr['newpm'] = 0;
 $usr['messages'] = 0;
 
-if (!empty($_COOKIE[$site_id]) || !empty($_SESSION[$site_id]))
+$csid = cot_import($sys['site_id'], 'COOKIE', 'ALP');
+if (!empty($csid) || !empty($_SESSION[$sys['site_id']]))
 {
-	$u = empty($_SESSION[$site_id]) ? explode(':', base64_decode($_COOKIE[$site_id])) : explode(':', base64_decode($_SESSION[$site_id]));
+	$u = empty($_SESSION[$sys['site_id']]) ? explode(':', base64_decode($csid)) : explode(':', base64_decode($_SESSION[$sys['site_id']]));
 	$u_id = (int) cot_import($u[0], 'D', 'INT');
 	$u_sid = $u[1];
 	if ($u_id > 0)
@@ -395,7 +399,8 @@ if ($usr['id'] == 0)
 	$usr['theme'] = $cfg['defaulttheme'];
 	$usr['scheme'] = $cfg['defaultscheme'];
 	$usr['lang'] = $cfg['defaultlang'];
-	$sys['xk'] = mb_strtoupper(dechex(crc32($site_id))); // Site related key for guests
+	$usr['maingrp'] = COT_GROUP_GUESTS;
+	$sys['xk'] = mb_strtoupper(dechex(crc32($sys['site_id']))); // Site related key for guests
 }
 
 $lang = $usr['lang'];
@@ -495,6 +500,10 @@ if(defined('COT_ADMIN'))
 
 /* ======== Theme / color scheme ======== */
 
+
+// Resource control object
+require_once $cfg['system_dir'].'/resources.php';
+
 if (empty($cfg['themes_dir']))
 {
 	$cfg['themes_dir'] = 'themes';
@@ -532,7 +541,7 @@ $theme = $usr['theme'];
 $scheme = $usr['scheme'];
 
 // Resource strings
-require_once $cfg['system_dir'].'/resources.php';
+require_once $cfg['system_dir'].'/resources.rc.php';
 
 if(defined('COT_ADMIN'))
 {
@@ -547,14 +556,10 @@ if (file_exists($sys['theme_resources']))
 {
 	$L_tmp = $L;
 	$R_tmp = $R;
-	$L = array();
-	$R = array();
 	include $sys['theme_resources'];
 	// Save overridden strings in $theme_reload global
-	$theme_reload['L'] = $L;
-	$theme_reload['R'] = $R;
-	$L = array_merge($L_tmp, $L);
-	$R = array_merge($R_tmp, $R);
+	$theme_reload['L'] = array_diff_assoc($L,$L_tmp);
+	$theme_reload['R'] = array_diff_assoc($R,$R_tmp);
 	unset($L_tmp, $R_tmp);
 }
 
@@ -598,7 +603,7 @@ if (empty($x) && $_SERVER['REQUEST_METHOD'] == 'POST')
 	$x = cot_import('x', 'G', 'ALP');
 }
 if ($_SERVER['REQUEST_METHOD'] == 'POST'
-	&& (!defined('COT_NO_ANTIXSS') && !defined('COT_AUTH')
+	&& !defined('COT_NO_ANTIXSS') && (!defined('COT_AUTH')
 			&& $x != $sys['xk'] && (empty($sys['xk_prev']) || $x != $sys['xk_prev'])
 		|| ($cfg['referercheck'] && !preg_match('`https?://([^/]+\.)?'.preg_quote($sys['domain']).'(/|:|$)`i', $_SERVER['HTTP_REFERER']))))
 {
@@ -607,17 +612,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'
 }
 
 /* ============ Head Resources ===========*/
-$cot_rc_skip_minification = false;
-if (!isset($cot_rc_html[$theme]) || !$cache || !$cfg['headrc_consolidate'] || defined('COT_ADMIN'))
-{
-	cot_rc_consolidate();
+if(!COT_AJAX) {
+	// May Be move it to header.php?
+	if (!isset($cot_rc_html[$theme]) || !$cache || !$cfg['headrc_consolidate'] || defined('COT_ADMIN')) {
+		// Load standard resources
+		cot_rc_add_standard();
+
+		// Invoke rc handlers
+		foreach (cot_getextplugins('rc') as $pl) {
+			include $pl;
+		}
+	}
+	if (!defined('COT_ADMIN')) {
+		if (file_exists("{$cfg['themes_dir']}/{$usr['theme']}/{$usr['theme']}.rc.php")) {
+			include "{$cfg['themes_dir']}/{$usr['theme']}/{$usr['theme']}.rc.php";
+		}
+	}
 }
-$cot_rc_skip_minification = true;
+/* ============ /Head Resources ===========*/
 
 // Cotonti-specific XTemplate initialization
 if (class_exists('XTemplate'))
 {
-	XTemplate::init($cfg['xtpl_cache'], $cfg['cache_dir'], $cfg['debug_mode'] && $_GET['tpl_debug'], $cfg['html_cleanup']);
+	XTemplate::init(array(
+		'cache'        => $cfg['xtpl_cache'],
+		'cache_dir'    => $cfg['cache_dir'],
+		'cleanup'      => $cfg['html_cleanup'],
+		'debug'        => $cfg['debug_mode'],
+		'debug_output' => (bool)$_GET['tpl_debug']
+	));
 }
 
 /* ======== Global hook ======== */

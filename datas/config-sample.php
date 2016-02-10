@@ -3,10 +3,8 @@
  * Configuration
  *
  * @package Cotonti
- * @version 0.9.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -51,7 +49,10 @@ $cfg['admintheme'] = '';			// Put custom administration theme name here
 
 $cfg['cache'] = TRUE;			// Enable data caching
 $cfg['cache_drv'] = '';			// Cache driver name to use on your server (if available)
-								// Possible values: APC, eAccelerator, Memcache, Xcache
+								// Possible values: APC, Memcache, Xcache
+$cfg['cache_drv_host'] = 'localhost';
+$cfg['cache_drv_port'] = null;
+
 $cfg['xtpl_cache'] = TRUE;		// Enable XTemplate structure disk cache. Should be TRUE on production sites
 $cfg['html_cleanup'] = FALSE;	// Wipe extra spaces and breaks from HTML to get smaller footprint
 
@@ -144,17 +145,6 @@ $cfg['shield_force'] = FALSE;
 
 $db_x				= 'cot_'; // Default: cot_, prefix for extra fields' table(s)
 
-$db_auth			= $db_x.'auth';
-$db_cache 			= $db_x.'cache';
-$db_cache_bindings	= $db_x.'cache_bindings';
-$db_core			= $db_x.'core';
-$db_config 			= $db_x.'config';
-$db_groups 			= $db_x.'groups';
-$db_groups_users 	= $db_x.'groups_users';
-$db_logger 			= $db_x.'logger';
-$db_online 			= $db_x.'online';
-$db_extra_fields	= $db_x.'extra_fields';
-$db_plugins 		= $db_x.'plugins';
-$db_structure 		= $db_x.'structure';
-$db_updates			= $db_x.'updates';
-$db_users 			= $db_x.'users';
+// Examples:
+// $db_auth			= 'my_custom_auth';
+// $db_cache 		= 'my_custom_cache';

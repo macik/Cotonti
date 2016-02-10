@@ -8,19 +8,19 @@ Hooks=pfs.first
 /**
  * Overrides markup in PFS insertText
  *
- * @package ckeditor
- * @version 0.7.5
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package CKEditor
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
 
+if (!$parser) $parser = ! empty(cot::$sys['parser']) ? cot::$sys['parser'] : cot::$cfg['parser'];
+$editor = cot::$cfg['plugin'][$parser]['editor'];
 
-if ($sys['parser'] == 'html')
+if ($parser == 'html' && $editor == 'ckeditor')
 {
-	$R['pfs_code_header_javascript'] = '
+	cot::$R['pfs_code_header_javascript'] = '
 	function addfile(gfile, c2, gdesc) {
 		if (opener.CKEDITOR.instances.{$c2} != undefined) {
 			opener.CKEDITOR.instances.{$c2}.insertHtml(\'{$pfs_code_addfile}\');

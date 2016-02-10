@@ -2,11 +2,9 @@
 /**
  * Comments system for Cotonti
  *
- * @package comments
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2009-2013
- * @license BSD
+ * @package Comments
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -18,10 +16,10 @@ require_once cot_langfile('comments', 'plug');
 require_once cot_incfile('comments', 'plug', 'resources');
 require_once cot_incfile('forms');
 
-// Table name globals
-global $db_com, $db_x;
-$db_com = (isset($db_com)) ? $db_com : $db_x . 'com';
-$cot_extrafields[$db_com] = (!empty($cot_extrafields[$db_com]))	? $cot_extrafields[$db_com] : array();
+// Table names
+cot::$db->registerTable('com');
+cot_extrafields_register_table('com');
+
 /**
  * Returns number of comments for item
  *
@@ -176,15 +174,14 @@ function cot_comments_display($ext_name, $code, $cat = '', $force_admin = false)
 		/* ===== */
 
 		$usr['id'] == 0 && $t->parse('COMMENTS.COMMENTS_NEWCOMMENT.GUEST');
-        if ($usr['id'] == 0 && cot_check_messages()){
-            if($ext_name == 'page'){
-                if ($cfg['cache_page'])
-                {
-                    $cache->page->clear('page/' . str_replace('.', '/', $structure['page'][$cat]['path']));
-                    $cfg['cache_page'] = false;
-                }
-            }
-        }
+		if ($usr['id'] == 0 && cot_check_messages() && $cache)
+		{
+			if($ext_name == 'page' && $cfg['cache_page'])
+			{
+				$cache->page->clear('page/' . str_replace('.', '/', $structure['page'][$cat]['path']));
+				$cfg['cache_page'] = false;
+			}
+		}
 		cot_display_messages($t, 'COMMENTS.COMMENTS_NEWCOMMENT');
 		$t->assign('COMMENTS_FORM_HINT', $com_hint);
 		$t->parse('COMMENTS.COMMENTS_NEWCOMMENT');
@@ -274,7 +271,7 @@ function cot_comments_display($ext_name, $code, $cat = '', $force_admin = false)
 				}
 			}
 
-			$t->assign(cot_generate_usertags($row, 'COMMENTS_ROW_AUTHOR_'), htmlspecialchars($row['com_author']));
+			$t->assign(cot_generate_usertags($row, 'COMMENTS_ROW_AUTHOR_', htmlspecialchars($row['com_author'])));
 
 			/* === Hook - Part2 : Include === */
 			foreach ($extp as $pl)

@@ -3,16 +3,20 @@
  * Administration panel - Rights by item editor
  *
  * @package Cotonti
- * @version 0.9.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 (defined('COT_CODE') && defined('COT_ADMIN')) or die('Wrong URL.');
 
 list($usr['auth_read'], $usr['auth_write'], $usr['isadmin']) = cot_auth('users', 'a');
 $usr['isadmin'] &= cot_auth('admin', 'a', 'A');
+if ($usr['maingrp'] == COT_GROUP_SUPERADMINS)
+{
+	$usr['auth_read'] = true;
+	$usr['auth_write'] = true;
+	$usr['isadmin'] = true;
+}
 cot_block($usr['isadmin']);
 
 $t = new XTemplate(cot_tplfile('admin.rightsbyitem', 'core'));
@@ -99,6 +103,10 @@ else
 	{
 		$adminpath[] = array(cot_url('admin', 'm=extensions&a=details&pl='.$io), $cot_plugins_enabled[$io]['title']);
 	}
+	elseif($ic == 'structure')
+	{
+		$adminpath[] = array(cot_url('admin', 'm=structure'), $L['Structure']);
+	}	
 	else
 	{
 		$adminpath[] = array(cot_url('admin', 'm=extensions&a=details&mod='.$ic), $cot_modules[$ic]['title']);

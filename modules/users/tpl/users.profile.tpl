@@ -2,7 +2,7 @@
 
 		<div class="block">
 			<h2 class="users">{USERS_PROFILE_TITLE}</h2>
-			{FILE "{PHP.cfg.themes_dir}/{PHP.cfg.defaulttheme}/warnings.tpl"}
+			{FILE "{PHP.cfg.themes_dir}/{PHP.usr.theme}/warnings.tpl"}
 			<form action="{USERS_PROFILE_FORM_SEND}" method="post" enctype="multipart/form-data" name="profile">
 				<input type="hidden" name="userid" value="{USERS_PROFILE_ID}" />
 				<table class="cells">
@@ -39,9 +39,9 @@
 								//]]>
 							</script>
 							<div>
-								{PHP.themelang.usersprofile.Emailpassword}:<br />{USERS_PROFILE_EMAILPASS}
+								{PHP.themelang.usersprofile_Emailpassword}:<br />{USERS_PROFILE_EMAILPASS}
 							</div>
-							<div class="small" id="emailnotes">{PHP.themelang.usersprofile.Emailnotes}</div>
+							<div class="small" id="emailnotes">{PHP.themelang.usersprofile_Emailnotes}</div>
 <!-- END: USERS_PROFILE_EMAILPROTECTION -->
 						</td>
 					</tr>
@@ -67,7 +67,7 @@
 						<td>{PHP.L.Language}:</td>
 						<td>{USERS_PROFILE_LANG}</td>
 					</tr>
-					<tr class="hidden">
+					<tr>
 						<td>{PHP.L.Country}:</td>
 						<td>{USERS_PROFILE_COUNTRY}</td>
 					</tr>

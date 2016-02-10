@@ -2,10 +2,9 @@
 /**
  * Russian Language File for BBcode management
  *
- * @package bbcode
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package BBcode
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL.');
@@ -43,5 +42,6 @@ $L['adm_help_bbcodes'] = "<ul>\n<li><strong>Имя</strong> - Название B
 
 $L['cfg_smilies'] = 'Включить смайлики';
 $L['cfg_smilies_hint'] = '';
+$L['cfg_parse_autourls'] = 'Автоматически преобразовывать URL в ссылки?';
 
 $L['info_desc'] = 'Поддержка и настройка ББ-кодов и смайликов в контенте сайта';

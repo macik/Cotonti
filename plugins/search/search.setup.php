@@ -5,12 +5,11 @@ Code=search
 Name=Search
 Category=navigation-structure
 Description=Search with extended features
-Version=4.0.4
-Date=2010-dec-16
+Version=4.0.8
+Date=2016-feb-07
 Author=Cotonti Team
-Copyright=Partial copyright (c) Cotonti Team 2008-2013
+Copyright=Partial copyright (c) Cotonti Team 2008-2016
 Notes=BSD License
-SQL=
 Auth_guests=R
 Lock_guests=W12345A
 Auth_members=R
@@ -34,11 +33,9 @@ extrafilters=09:radio::1:Show extrafilters on main search page
 /**
  * Search plugin
  *
- * @package search
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD License
+ * @package Search
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');

@@ -8,7 +8,7 @@ Description=Will clean various things...
 Version=0.7.0
 Date=2010-jan-03
 Author=Neocrome & Cotonti Team
-Copyright=Partial copyright (c) Cotonti Team 2008-2013
+Copyright=Partial copyright (c) Cotonti Team 2008-2014
 Notes=BSD License
 SQL=
 Auth_guests=0
@@ -30,11 +30,9 @@ pmold=07:select:0,15,30,60,120,180,365:365:Delete ALL the private messages older
 /**
  * Will clean various things
  *
- * @package cleaner
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package Cleaner
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');

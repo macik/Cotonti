@@ -2,11 +2,9 @@
 /**
  * English Language File for the PM Module (pm.en.lang.php)
  *
- * @package pm
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package PM
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL.');
@@ -46,6 +44,8 @@ $L['pm_notifytitle'] = 'New private message';
 $Ls['Privatemessages'] = "new private messages,new private message";
 $L['pm_replyto'] = 'Reply to this user';
 $L['pm_sendnew'] = 'Send a new private message';
+$L['pm_sendpm'] = 'Send a private message';
+$L['pm_sendmessagetohint'] = 'up to 10 recipients, separated by commas';
 $L['pm_sentbox'] = 'Sent-box';
 $L['pm_sentboxsubtitle'] = 'Sent messages';
 $L['pm_titletooshort'] = 'The title is too short or missing';

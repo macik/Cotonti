@@ -9,15 +9,13 @@
 /**
  * Contact Plugin for Cotonti CMF
  *
- * @package contact
- * @version 2.1.0
- * @author Cotonti Team
- * @copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package Contact
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 defined('COT_CODE') or die('Wrong URL');
 
-if (isset($cot_captcha))
+if (!empty($cot_captcha))
 {
 	if (!function_exists(cot_captcha_generate))
 	{
@@ -54,11 +52,12 @@ if (isset($cot_captcha))
 $tplfile = cot_import('tpl', 'G', 'TXT');
 $mskin = cot_tplfile(array('contact', $tplfile), 'plug');
 $t = new XTemplate($mskin);
+$rtext = cot_import('rtext', 'P', 'TXT');
 
-if (isset($_POST['rtext']))
+if (!empty($rtext))
 {
 	//Import the variables
-	$rcontact['contact_text'] = cot_import('rtext', 'P', 'TXT');
+	$rcontact['contact_text'] = $rtext;
 	$rcontact['contact_author'] = cot_import('ruser', 'P', 'TXT');
 	$rcontact['contact_email'] = cot_import('remail', 'P', 'TXT');
 	$rcontact['contact_subject'] = cot_import('rsubject', 'P', 'TXT');
@@ -69,7 +68,7 @@ if (isset($_POST['rtext']))
 		$rcontact['contact_' . $exfld['field_name']] = cot_import_extrafields('rcontact' . $exfld['field_name'], $exfld);
 	}
 
-	if ($usr['id'] == 0 && isset($cot_captcha))
+	if ($usr['id'] == 0 && !empty($cot_captcha))
 	{
 		$rverify = cot_import('rverify', 'P', 'TXT');
 		if (!cot_captcha_validate($rverify))
@@ -164,12 +163,12 @@ if (!$sent)
 			));
 		$t->parse('MAIN.FORM.EXTRAFLD');
 	}
-	if ($usr['id'] == 0 && isset($cot_captcha))
+	if ($usr['id'] == 0 && !empty($cot_captcha))
 	{
 
 		$t->assign(array(
 			'CONTACT_FORM_VERIFY_IMG' => cot_captcha_generate(),
-			'CONTACT_FORM_VERIFY' => cot_inputbox('text', 'rverify', $rverify, 'id="rverify" size="20"')
+			'CONTACT_FORM_VERIFY' => cot_inputbox('text', 'rverify', '', 'id="rverify" size="20"')
 		));
 		$t->parse('MAIN.FORM.CAPTCHA');
 	}

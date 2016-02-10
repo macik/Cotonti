@@ -8,11 +8,9 @@ Hooks=module
 /**
  * Page module main
  *
- * @package page
- * @version 0.9.3
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package Page
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL.');
@@ -30,7 +28,9 @@ require_once cot_incfile('page', 'module');
 // Mode choice
 if (!in_array($m, array('add', 'edit')))
 {
-	if (isset($_GET['id']) || isset($_GET['al']))
+	$id = cot_import('id','G','NOC'); // for 404 on bad ID
+	$al = cot_import('al','G','TXT');
+	if (isset($id) || $al)
 	{
 		$m = 'main';
 	}

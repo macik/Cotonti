@@ -44,7 +44,12 @@
 				<tr>
 					<td class="{FORUMS_POSTS_ROW_ODDEVEN}">
 						{FORUMS_POSTS_ROW_ANCHORLINK}
-						<h4><img src="themes/{PHP.theme}/img/online{FORUMS_POSTS_ROW_USERONLINE}.png" title="{PHP.L.Status}: {FORUMS_POSTS_ROW_USERONLINETITLE}" alt="" class="userstatus" />{FORUMS_POSTS_ROW_USERNAME}</h4>
+						<h4>
+							<!-- IF {PHP.cot_plugins_active.whosonline} -->
+							<img src="themes/{PHP.theme}/img/online{FORUMS_POSTS_ROW_USERONLINE}.png" title="{PHP.L.Status}: {FORUMS_POSTS_ROW_USERONLINETITLE}" alt="" class="userstatus" />
+							<!-- ENDIF -->
+							{FORUMS_POSTS_ROW_USERNAME}
+						</h4>
 					</td>
 					<td class="small centerall textright {FORUMS_POSTS_ROW_ODDEVEN}">
 						<a name="{FORUMS_POSTS_ROW_ID}" id="{FORUMS_POSTS_ROW_POSTID}" href="{FORUMS_POSTS_ROW_IDURL}" rel="nofollow">#{FORUMS_POSTS_ROW_ORDER}</a><span class="spaced">{PHP.cfg.separator}</span>{FORUMS_POSTS_ROW_CREATION}<!-- IF {FORUMS_POSTS_ROW_POSTERIP} --><span class="spaced">{PHP.cfg.separator}</span>{FORUMS_POSTS_ROW_POSTERIP}<!-- ENDIF --><!-- IF {FORUMS_POSTS_ROW_QUOTE} --><span class="spaced">{PHP.cfg.separator}</span>{FORUMS_POSTS_ROW_QUOTE}<!-- ENDIF --><!-- IF {FORUMS_POSTS_ROW_EDIT} --><span class="spaced">{PHP.cfg.separator}</span>{FORUMS_POSTS_ROW_EDIT}<!-- ENDIF --><!-- IF {FORUMS_POSTS_ROW_DELETE} --><span class="spaced">{PHP.cfg.separator}</span>{FORUMS_POSTS_ROW_DELETE}<!-- ENDIF --> {FORUMS_POSTS_ROW_BOTTOM}
@@ -82,7 +87,7 @@
 		<div>{FORUMS_POSTS_ANTIBUMP_BODY}</div>
 <!-- END: FORUMS_POSTS_ANTIBUMP -->
 
-{FILE "{PHP.cfg.themes_dir}/{PHP.cfg.defaulttheme}/warnings.tpl"}
+{FILE "{PHP.cfg.themes_dir}/{PHP.usr.theme}/warnings.tpl"}
 
 <!-- BEGIN: FORUMS_POSTS_NEWPOST -->
 		<form action="{FORUMS_POSTS_NEWPOST_SEND}" method="post" name="newpost">

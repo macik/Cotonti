@@ -128,6 +128,13 @@ div.help										{ color:#000; background-color:#f2f2f2; background-image:url(.
 .width95	{ width:95%; }
 .width100	{ width:100%; }
 
+.extension.missing		{ color:#ac5866; }
+.extension.notinstalled	{ color:#ac5866; }
+.extension.partrunning	{ color:#a78731; }
+.extension.paused		{ color:#5882ac; }
+.extension.present		{ color:#739e48; }
+.extension.running		{ color:#739e48; }
+
 /* 5. Admin Menu
 -------------------------------------------------- */
 
@@ -153,6 +160,7 @@ a.thumbicons img {
    } 
 
 a.thumbicons:hover {background: #EDEFF4;}
+
 /* 6. Tables
 -------------------------------------------------- */
 
@@ -168,7 +176,7 @@ table.cells tr:hover td.valid {background: #fff!important;}
 table.flat 	{ border-collapse:collapse; width:100%; }
 table.flat td	{ padding:0; border:0; }
 
-.action a	{ margin:0 2px; }
+.action a	{ margin:2px;}
 .coltop		{ text-align:center; line-height:1.4em; vertical-align:middle; font-size:.9em; background-color:#EDEFF4!important; color:#000;}
 .coltop img	{ vertical-align:middle; }
 .centerall 	{ text-align:center; vertical-align:middle; }

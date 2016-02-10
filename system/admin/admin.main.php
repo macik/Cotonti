@@ -3,10 +3,8 @@
  * Administration panel
  *
  * @package Cotonti
- * @version 0.9.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 (defined('COT_CODE') && defined('COT_ADMIN')) or die('Wrong URL.');
@@ -40,7 +38,7 @@ $standard_admin = array('cache.disk', 'cache', 'config', 'extrafields', 'home', 
 $inc_file = (empty($m)) ? 'home' : $m;
 $inc_file = (empty($s)) ? $inc_file : $inc_file.'.'.$s;
 if (in_array($inc_file, $standard_admin) && file_exists(cot_incfile('admin', 'module', $inc_file)))
-{ 
+{
 	$inc_file = cot_incfile('admin', 'module', $inc_file);
 }
 else
@@ -62,7 +60,7 @@ $allow_img['1']['1'] = $R['admin_icon_allow_locked'];
 
 $usr['admin_config'] = cot_auth('admin', 'a', 'A');
 $usr['admin_structure'] = cot_auth('structure', 'a', 'A');
-$usr['admin_users'] = cot_auth('users', 'a', 'A');
+$usr['admin_users'] = cot_auth('users', 'a', 'A') || $usr['maingrp'] == COT_GROUP_SUPERADMINS;
 
 $adminpath = array(array(cot_url('admin'), $L['Adminpanel']));
 

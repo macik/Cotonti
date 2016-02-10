@@ -3,16 +3,20 @@
  * Administration panel - Rights editor
  *
  * @package Cotonti
- * @version 0.9.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 (defined('COT_CODE') && defined('COT_ADMIN')) or die('Wrong URL.');
 
 list($usr['auth_read'], $usr['auth_write'], $usr['isadmin']) = cot_auth('users', 'a');
 $usr['isadmin'] &= cot_auth('admin', 'a', 'A');
+if ($usr['maingrp'] == COT_GROUP_SUPERADMINS)
+{
+	$usr['auth_read'] = true;
+	$usr['auth_write'] = true;
+	$usr['isadmin'] = true;
+}
 cot_block($usr['isadmin']);
 
 $t = new XTemplate(cot_tplfile('admin.rights', 'core'));
@@ -20,10 +24,20 @@ $t = new XTemplate(cot_tplfile('admin.rights', 'core'));
 $g = cot_import('g', 'G', 'INT');
 $advanced = cot_import('advanced', 'G', 'BOL');
 
+if(!$g){
+    cot_error(cot::$L['users_group_not_found']);
+    cot_redirect(cot_url('admin', array('m' => 'users'), '', true));
+}
+$group = $db->query("SELECT * FROM $db_groups WHERE grp_id = ?", $g)->fetch();
+if(!$group) {
+    cot_error(cot::$L['users_group_not_found']);
+    cot_redirect(cot_url('admin', array('m' => 'users'), '', true));
+}
+
 // Check if the group is rightless
-if ($db->query("SELECT grp_skiprights FROM $db_groups WHERE grp_id = $g")->fetchColumn())
-{
-	cot_die();
+if ($group['grp_skiprights'] > 0) {
+    cot_error("«{$group['grp_name']}». ".cot::$L['adm_group_has_no_rights']);
+    cot_redirect(cot_url('admin', array('m' => 'users'), '', true));
 }
 
 /* === Hook === */
@@ -53,10 +67,9 @@ if ($a == 'update')
 
 		cot_message('Added');
 	}
-	elseif (is_array($_POST['auth']))
+	elseif ($auth = cot_import('auth', 'P', 'ARR'))
 	{
 		$mask = array();
-		$auth = cot_import('auth', 'P', 'ARR');
 
 		$db->update($db_auth, array('auth_rights' => 0), "auth_groupid=$g");
 
@@ -120,10 +133,10 @@ foreach ($cot_modules as $code => $mod)
 }
 
 // The core and modules top-level
-$sql = $db->query("SELECT a.*, u.user_name FROM $db_core AS c
-LEFT JOIN $db_auth AS a ON c.ct_code=a.auth_code
+$sql = $db->query("SELECT a.*, u.user_name FROM $db_auth AS a 
+LEFT JOIN $db_core AS c ON c.ct_code=a.auth_code
 LEFT JOIN $db_users AS u ON u.user_id=a.auth_setbyuserid
-WHERE auth_groupid='$g' AND auth_option = 'a' AND c.ct_plug = 0
+WHERE auth_groupid='$g' AND auth_option = 'a' AND (c.ct_plug = 0 || c.ct_plug IS NULL)
 ORDER BY auth_code ASC");
 while ($row = $sql->fetch())
 {
@@ -138,6 +151,11 @@ while ($row = $sql->fetch())
 		$link = '#';
 		$title = $L['Messages'];
 	}
+	elseif ($row['auth_code'] == 'structure')
+	{
+		$link = '#';
+		$title = $L['Structure'];
+	}	
 	else
 	{
 		$link = cot_url('admin', "m=extensions&a=details&mod=".$row['auth_code']);

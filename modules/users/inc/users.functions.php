@@ -4,10 +4,8 @@
  * User Functions
  *
  * @package Cotonti
- * @version 0.9.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -20,7 +18,7 @@ require_once cot_incfile('users', 'module', 'resources');
 require_once cot_incfile('extrafields');
 
 // Extafield globals
-$cot_extrafields[$db_users] = (!empty($cot_extrafields[$db_users])) ? $cot_extrafields[$db_users] : array();
+cot_extrafields_register_table('users');
 
 /**
  * Adds new user
@@ -213,4 +211,59 @@ function cot_selectbox_gender($check, $name)
 		$titlelist[] = $L['Gender_' . $i];
 	}
 	return cot_selectbox($check, $name, $genlist, $titlelist, false);
+}
+
+/**
+ * Fetches user entry from DB
+ *
+ * @param int $uid   User ID
+ * @param bool $cacheitem Use one time session cache
+ * @return array
+ */
+function cot_user_data($uid = 0, $cacheitem = true)
+{
+	global $db_users;
+
+	$user = false;
+
+	if (! $uid && cot::$usr['id'] > 0)
+	{
+		$uid = cot::$usr['id'];
+		$user = cot::$usr['profile'];
+	}
+	if (! $uid) return null;
+
+	static $u_cache = array();
+
+	if ($cacheitem && isset($u_cache[$uid]))
+	{
+		return $u_cache[$uid];
+	}
+
+	if (! $user)
+	{
+		if (is_array($uid))
+		{
+			$user = $uid;
+			$uid = $user['user_id'];
+		}
+		else
+		{
+			if ($uid > 0 && $uid == cot::$usr['id'])
+			{
+				$user = cot::$usr['profile'];
+			}
+			else
+			{
+				$uid = (int) $uid;
+				if (! $uid) return null;
+				$sql = cot::$db->query("SELECT * FROM $db_users WHERE user_id = ? LIMIT 1", $uid);
+				$user = $sql->fetch();
+			}
+		}
+	}
+
+	$cacheitem && $u_cache[$uid] = $user;
+
+	return $user;
 }

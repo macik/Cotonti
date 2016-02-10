@@ -2,10 +2,9 @@
 /**
  * English Language File for BBcode management
  *
- * @package bbcode
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package BBcode
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL.');
@@ -43,5 +42,6 @@ $L['adm_help_bbcodes'] = "<ul>\n<li><strong>Name</strong> - BBcode name (use alp
 
 $L['cfg_smilies'] = 'Enable smilies';
 $L['cfg_smilies_hint'] = '';
+$L['cfg_parse_autourls'] = 'Automatically convert URLs into links ?';
 
 $L['info_desc'] = 'Customizable support for BBCodes and smilies parsing';

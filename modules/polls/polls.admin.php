@@ -8,11 +8,9 @@ Hooks=admin
 /**
  * Administration panel - Poll editor
  *
- * @package polls
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package Polls
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 (defined('COT_CODE') && defined('COT_ADMIN')) or die('Wrong URL.');
@@ -130,7 +128,6 @@ foreach ($sql_polls->fetchAll() as $row)
 		'ADMIN_POLLS_ROW_POLL_TYPE' => $variants[htmlspecialchars($row['poll_type'])][0],
 		'ADMIN_POLLS_ROW_POLL_URL' => cot_url('admin', 'm=polls'.$poll_filter.'&n=options&d='.$durl.'&id='.$row['poll_id']),
 		'ADMIN_POLLS_ROW_POLL_TEXT' => htmlspecialchars($row['poll_text']),
-		'ADMIN_POLLS_ROW_POLL_URL_LCK' => cot_url('admin', 'm=polls'.$poll_filter.'&a=lock&id='.$id.'&'.cot_xg()),
 		'ADMIN_POLLS_ROW_POLL_TOTALVOTES' => $totalvotes,
 		'ADMIN_POLLS_ROW_POLL_LOCKED' => ($row['poll_state']) ? '[-] ' : '',
 		'ADMIN_POLLS_ROW_POLL_URL_DEL' => cot_url('admin', 'm=polls'.$poll_filter.'&a=delete&id='.$id.'&'.cot_xg()),

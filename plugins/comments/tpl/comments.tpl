@@ -3,7 +3,7 @@
 <!-- BEGIN: COMMENTS_TITLE -->
 			<h2><a href="{COMMENTS_TITLE_URL}">{COMMENTS_TITLE}</a></h2>
 <!-- END: COMMENTS_TITLE -->
-			{FILE "{PHP.cfg.themes_dir}/{PHP.cfg.defaulttheme}/warnings.tpl"}
+			{FILE "{PHP.cfg.themes_dir}/{PHP.usr.theme}/warnings.tpl"}
 <!-- BEGIN: COMMENTS_FORM_EDIT -->
 			<form id="comments" name="comments" action="{COMMENTS_FORM_POST}" method="post">
 				<table class="cells">
@@ -41,7 +41,7 @@
 
 		<a name="comments"></a>
 
-		<div class="block" style="display:{COMMENTS_DISPLAY}">
+		<div class="block" <!-- IF {COMMENTS_DISPLAY} == 'none' -->style="display:none;"<!-- ENDIF -->>
 <!-- BEGIN: COMMENTS_ROW -->
 				<div class="comments1">
 					<p>{COMMENTS_ROW_AUTHOR_AVATAR}</p>
@@ -64,7 +64,7 @@
 
 <!-- BEGIN: COMMENTS_NEWCOMMENT -->
 				<h2 class="comments">{PHP.L.Newcomment}</h2>
-				{FILE "{PHP.cfg.themes_dir}/{PHP.cfg.defaulttheme}/warnings.tpl"}
+				{FILE "{PHP.cfg.themes_dir}/{PHP.usr.theme}/warnings.tpl"}
 				<form action="{COMMENTS_FORM_SEND}" method="post" name="newcomment">
 					<!-- BEGIN: GUEST -->
 					<div>{PHP.L.Name}: {COMMENTS_FORM_AUTHOR}</div>

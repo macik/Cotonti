@@ -4,10 +4,8 @@
  * English Language File for the Admin Module (admin.en.lang.php)
  *
  * @package Cotonti
- * @version 0.9.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL.');
@@ -181,7 +179,7 @@ $L['cfg_menu9_hint'] = '';
  * Performance Subsection
  */
 $L['cfg_gzip'] = 'Gzip';
-$L['cfg_gzip_hint'] = 'Gzip compression of the HTML output. Do not enable it if your server already applies Gzip to your pages. Use this tool to test if Gzip is already enabled on your site: <a href="http://www.whatsmyip.org/http-compression-test/">HTTP Compression Test</a>';
+$L['cfg_gzip_hint'] = 'Gzip compression of the HTML output. Do not enable it if your server already applies Gzip to your pages. Use this tool to test if Gzip is already enabled on your site: <a target="_blank" href="http://www.whatsmyip.org/http-compression-test/">HTTP Compression Test</a>';
 $L['cfg_headrc_consolidate'] = 'Consolidate header and footer resources (JS/CSS)';
 $L['cfg_headrc_minify'] = 'Minify consolidated JS/CSS';
 $L['cfg_jquery_cdn'] = 'Use jQuery from this CDN URL';
@@ -391,6 +389,7 @@ $L['adm_maxsizeallpfs'] = 'Max size of all files together in '.$L['PFS'].' (KiB)
 $L['adm_copyrightsfrom'] = 'Set the same rights as the group';
 $L['adm_rights_maintenance'] = 'Access to site when maintenance mode on';
 $L['adm_skiprights'] = 'Omit rights for this group';
+$L['adm_group_has_no_rights'] = 'Group has no rights';
 $L['adm_groups_name_empty'] = 'Group name must not be empty';
 $L['adm_groups_title_empty'] = 'Group member title must not be empty';
 $L['users_grp_5_title'] = 'Administrators';
@@ -447,6 +446,12 @@ $L['adm_sort_alphabet'] = 'Alphabetical';
 $L['adm_sort_category'] = 'Category View';
 
 $L['adm_only_installed'] = 'Installed';
+
+$L['adm_hook_changed'] = 'Warning! This file is not properly registered in DB or was changed after the installation.<br />';
+$L['adm_hook_notregistered'] = ' — Hook(s): <b>{$hooks}</b> not registered<br />';
+$L['adm_hook_notfound'] = ' — Hook(s): <b>{$hooks}</b> registered but not found in file<br />';
+$L['adm_hook_filenotfound'] = ' — File: <b>{$file}</b> not found!<br />';
+$L['adm_hook_updatenote'] = 'Please update plugin with «<b>update</b>» button above.';
 
 /**
  * Tools Section
@@ -523,6 +528,14 @@ $L['viewdeleteentries'] = 'View or delete entries';
 $L['alreadyaddnewentry'] = 'New entry added';
 $L['alreadyupdatednewentry'] = 'Entry updated';
 $L['alreadydeletednewentry'] = 'Entry deleted';
+
+$L['adm_invalid_input'] = "Invalid value '{$value}' for variable '{$field_name}'";
+$L['adm_set_default'] = 'Default value used';
+$L['adm_max'] = "maximum allowed '{$value}'";
+$L['adm_min'] = "minimum allowed '{$value}'";
+$L['adm_set'] = 'Using ';
+$L['adm_partially_updated'] = 'Not all values updated';
+$L['adm_already_updated'] = 'Already updated';
 
 /**
  * Extra Fields (Common Entries for Pages & Structure & Users)

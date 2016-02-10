@@ -8,11 +8,9 @@ Hooks=module
 /**
  * RSS module main
  *
- * @package rss
- * @version 0.9.1
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package RSS
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL.');
@@ -231,9 +229,12 @@ elseif ($default_mode)
 	{
 		$url = (empty($row['page_alias'])) ? cot_url('page', 'c='.$row['page_cat'].'&id='.$row['page_id'], '', true) : cot_url('page', 'c='.$row['page_cat'].'&al='.$row['page_alias'], '', true);
 
+        $rssDate = $row['page_date'];
+        if(!empty(cot::$usr['timezone'])) $rssDate += cot::$usr['timezone'] * 3600;
+
 		$items[$i]['title'] = $row['page_title'];
-		$items[$i]['link'] = (strpos($url, '://') === false) ? COT_ABSOLUTE_URL . $url : $url;;
-		$items[$i]['pubDate'] = cot_date('r', $row['page_date']);
+		$items[$i]['link'] = (strpos($url, '://') === false) ? COT_ABSOLUTE_URL . $url : $url;
+		$items[$i]['pubDate'] = date('r', $rssDate);
 		$items[$i]['description'] = cot_parse_page_text($row['page_text'], $url, $row['page_parser']);
 		$items[$i]['fields'] = cot_generate_pagetags($row);
 
@@ -242,6 +243,9 @@ elseif ($default_mode)
 	$sql->closeCursor();
 }
 
+$rssNow = cot::$sys['now'];
+if(!empty(cot::$usr['timezone'])) $rssNow += cot::$usr['timezone'] * 3600;
+
 $t = new XTemplate(cot_tplfile('rss'));
 $t->assign(array(
 	'RSS_ENCODING' => $cfg['rss']['rss_charset'],
@@ -249,7 +253,7 @@ $t->assign(array(
 	'RSS_LINK' => $rss_link,
 	'RSS_LANG' => $cfg['defaultlang'],
 	'RSS_DESCRIPTION' => htmlspecialchars($rss_description),
-	'RSS_DATE' => cot_fix_pubdate(cot_date("r"))
+	'RSS_DATE' => cot_fix_pubdate(date("r", $rssNow))
 ));
 
 if (count($items) > 0)
@@ -288,27 +292,18 @@ function cot_parse_page_text($pag_text, $pag_pageurl, $pag_parser)
 	global $cfg;
 
 	$pag_text = cot_parse($pag_text, $pag_parser !== 'none', $pag_parser);
-	$readmore = mb_strpos($pag_text, "<!--more-->");
-	if ($readmore > 0)
-	{
-		$pag_text = mb_substr($pag_text, 0, $readmore) . ' ';
-		$pag_text .= cot_rc('list_link_more', array('page_url' => $pag_pageurl));
+    $text_cut = cot_cut_more($pag_text);
+    $cutted = (mb_strlen($pag_text) > mb_strlen($text_cut)) ? true : false;
+
+    if($cutted) {
+        $text_cut .= cot_rc('list_more', array('page_url' => $pag_pageurl));
+    }
+
+	if ((int)$cfg['rss']['rss_pagemaxsymbols'] > 0 ) {
+        $text_cut = cot_string_truncate($text_cut, $cfg['rss']['rss_pagemaxsymbols'], true, false, '...');
 	}
 
-	$newpage = mb_strpos($pag_text, '[newpage]');
-
-	if ($newpage !== false)
-	{
-		$pag_text = mb_substr($pag_text, 0, $newpage);
-	}
-
-	$pag_text = preg_replace('#\[title\](.*?)\[/title\][\s\r\n]*(<br />)?#i', '', $pag_text);
-	$text = $pag_text;
-	if ((int)$cfg['rss']['rss_pagemaxsymbols'] > 0)
-	{
-		$text = cot_string_truncate($text, $cfg['rss']['rss_pagemaxsymbols']) . '...';
-	}
-	return $text;
+	return $text_cut;
 }
 
 function cot_parse_post_text($post_text)
@@ -319,7 +314,7 @@ function cot_parse_post_text($post_text)
 
 	if ((int)$cfg['rss']['rss_postmaxsymbols'] > 0)
 	{
-		$post_text = cot_string_truncate($post_text, $cfg['rss']['rss_postmaxsymbols']) . '...';
+		$post_text = cot_string_truncate($post_text, $cfg['rss']['rss_postmaxsymbols'], true, false, '...');
 	}
 	return $post_text;
 }

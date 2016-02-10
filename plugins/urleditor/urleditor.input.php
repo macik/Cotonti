@@ -2,6 +2,7 @@
 /* ====================
 [BEGIN_COT_EXT]
 Hooks=input
+Order=5
 [END_COT_EXT]
 ==================== */
 
@@ -9,11 +10,9 @@ Hooks=input
  * Overloads standard cot_url() function and loads URL
  * transformation rules
  *
- * @package urleditor
- * @version 0.9.3
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2010-2013
- * @license BSD
+ * @package URLEditor
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -64,7 +63,7 @@ if (!is_array($cot_urltrans))
 		'params' => array(),
 		'trans' => 'index.php?e={$_area}'
 	);
-	$cache && $cache->db->store('cot_urltrans', $cot_urltrans, 'system', 1200);
+	// $cache && $cache->db->store('cot_urltrans', $cot_urltrans, 'system', 1200);
 }
 
 if(!in_array($cfg['plugin']['urleditor']['preset'], array('custom', 'none')))

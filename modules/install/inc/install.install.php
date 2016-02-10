@@ -1,17 +1,15 @@
 <?php
 /**
- * @package install
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2009-2013
- * @license BSD
+ * @package Install
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
 
 // Modules and plugins checked by default
 $default_modules = array('index', 'page', 'users', 'rss');
-$default_plugins = array('ckeditor', 'cleaner', 'html', 'htmlpurifier', 'ipsearch', 'mcaptcha', 'news', 'search');
+$default_plugins = array('ckeditor', 'cleaner', 'html', 'htmlpurifier', 'ipsearch', 'mcaptcha', 'indexnews', 'search');
 
 $step = empty($_SESSION['cot_inst_lang']) ? 0 : (int) $cfg['new_install'];
 
@@ -37,6 +35,8 @@ if ($step > 2)
 {
 	$dbc_port = empty($cfg['mysqlport']) ? '' : ';port='.$cfg['mysqlport'];
 	$db = new CotDB('mysql:host='.$cfg['mysqlhost'].$dbc_port.';dbname='.$cfg['mysqldb'], $cfg['mysqluser'], $cfg['mysqlpassword']);
+
+	cot::init();
 }
 
 // Import section
@@ -53,8 +53,8 @@ switch ($step)
 	case 3:
 		$cfg['mainurl'] = cot_import('mainurl', 'P', 'TXT', 0, false, true);
 		$user['name'] = cot_import('user_name', 'P', 'TXT', 100, false, true);
-		$user['pass'] = cot_import('user_pass', 'P', 'HTM', 32);
-		$user['pass2'] = cot_import('user_pass2', 'P', 'TXT', 16);
+		$user['pass'] = cot_import('user_pass', 'P', 'TXT', 32);
+		$user['pass2'] = cot_import('user_pass2', 'P', 'TXT', 32);
 		$user['email'] = cot_import('user_email', 'P', 'TXT', 64, false, true);
 		$user['country'] = cot_import('user_country', 'P', 'TXT', 0, false, true);
 		$rtheme = explode(':', cot_import('theme', 'P', 'TXT', 0, false, true));
@@ -138,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 
 			try
 			{
-				$dbс_port = empty($db_port) ? '' : ';port='.$db_port;
+				$dbc_port = empty($db_port) ? '' : ';port='.$db_port;
 				$db = new CotDB('mysql:host='.$db_host.$dbc_port.';dbname='.$db_name, $db_user, $db_pass);
 			}
 			catch (PDOException $e)
@@ -211,8 +211,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 			{
 				cot_error('aut_passwordtooshort', 'user_pass');
 			}
-			if (mb_strlen($user['email']) < 4
-				|| !preg_match('#^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]{2,})+$#i', $user['email']))
+			if (mb_strlen($user['email']) < 4 || !cot_check_email($user['email']))
 			{
 				cot_error('aut_emailtooshort', 'user_email');
 			}
@@ -334,10 +333,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 			cot_redirect(cot_url('index'));
 			exit;
 	}
-	
+
 	$inst_func_name = "cot_install_step".$step."_setup";
 	function_exists($inst_func_name) && $inst_func_name();
-	
+
 	if (cot_error_found())
 	{
 		// One step back
@@ -356,9 +355,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 		{
 			$config_contents = preg_replace("#^\\\$cfg\['new_install'\]\s*=\s*.*?;#m", "\$cfg['new_install'] = $step;",
 					$config_contents);
-		}		
+		}
 		function_exists("cot_install_stepplusplus") && cot_install_stepplusplus();
-		
+
 		file_put_contents($file['config'], $config_contents);
 	}
 }
@@ -371,13 +370,13 @@ switch ($step)
 		$t->assign(array(
 			'INSTALL_LANG' => cot_selectbox_lang($lang, 'lang')
 		));
-		
+
 		$install_files = glob("*.install.php");
-		
+
 		if (!empty($install_files))
 		{
 			$install_scripts = array();
-			foreach ($install_files as $filename) 
+			foreach ($install_files as $filename)
 			{
 				preg_match("#(.*?)\/?(.+)\.install\.php#i", $filename, $mtch);
 				$install_scripts[$filename] = $mtch[2];
@@ -540,7 +539,7 @@ switch ($step)
 			'INSTALL_MBSTRING' => $status['mbstring'],
 			'INSTALL_HASH' => $status['hash'],
 			'INSTALL_MYSQL' => $status['mysql']
-		));	
+		));
 		break;
 	case 2:
 		// Database form
@@ -554,17 +553,17 @@ switch ($step)
 			'INSTALL_DB_PORT_INPUT' => cot_inputbox('text', 'db_port', is_null($db_port) ? $cfg['mysqlport'] : $db_port, 'size="32"'),
 			'INSTALL_DB_USER_INPUT' => cot_inputbox('text', 'db_user',  is_null($db_user) ? $cfg['mysqluser'] : $db_user, 'size="32"'),
 			'INSTALL_DB_NAME_INPUT' => cot_inputbox('text', 'db_name',  is_null($db_name) ? $cfg['mysqldb'] : $db_name, 'size="32"'),
-			'INSTALL_DB_PASS_INPUT' => cot_inputbox('password', 'db_pass', '', 'size="32"'),			
-			'INSTALL_DB_X_INPUT' => cot_inputbox('text', 'db_x',  $db_x, 'size="32"'),			
+			'INSTALL_DB_PASS_INPUT' => cot_inputbox('password', 'db_pass', '', 'size="32"'),
+			'INSTALL_DB_X_INPUT' => cot_inputbox('text', 'db_x',  $db_x, 'size="32"'),
 		));
 		break;
 	case 3:
 		// Settings
-		if ($_POST['step'] != 3 && !cot_check_messages())
+		if (cot_import('step', 'POST', 'INT') != 3 && !cot_check_messages())
 		{
 			$rtheme = $theme;
 			$rscheme = $scheme;
-			$rlang = $cfg['defaultlang'];
+			$rlang = $lang;
 			$cfg['mainurl'] = $site_url;
 		}
 
@@ -582,6 +581,16 @@ switch ($step)
 		// Extensions
 		cot_install_parse_extensions('Module', $default_modules, $selected_modules);
 		cot_install_parse_extensions('Plugin', $default_plugins, $selected_plugins);
+
+		// robots.txt
+		$robotsTxtFilePath = './robots.txt';
+		if(file_exists($robotsTxtFilePath) && is_writable($robotsTxtFilePath)) {
+			$robotsTxtFile = file_get_contents($robotsTxtFilePath);
+			$tmp = 'Host: '.str_replace(array('http://', 'https://'), '', $cfg['mainurl']);
+			$robotsTxtFile = str_replace('# Host: http://your-domain.com', $tmp, $robotsTxtFile);
+			file_put_contents($robotsTxtFilePath, $robotsTxtFile);
+		}
+
 		break;
 	case 5:
 		// End credits
@@ -635,7 +644,7 @@ function cot_install_parse_extensions($ext_type, $default_list = array(), $selec
 
 	$ext_list = cot_extension_list_info($cfg["{$ext_type_lc}s_dir"]);
 
-	$ext_type_lc == 'plugin' ? usort($ext_list, 'cot_extension_catcmp') : ksort($ext_list);
+	$ext_type_lc == 'plugin' ? uasort($ext_list, 'cot_extension_catcmp') : ksort($ext_list);
 
 	$prev_cat = '';
 	$block_name = $ext_type_lc == 'plugin' ? "{$ext_type_uc}_CAT.{$ext_type_uc}_ROW" : "{$ext_type_uc}_ROW";
@@ -643,7 +652,7 @@ function cot_install_parse_extensions($ext_type, $default_list = array(), $selec
 	{
 		if (is_array($info))
 		{
-			$code = $ext_type_lc == 'plugin' ? $info['Code'] : $f;
+			$code = $f;
 			if ($ext_type_lc == 'plugin' && $prev_cat != $info['Category'])
 			{
 				if ($prev_cat != '')

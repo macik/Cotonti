@@ -1,13 +1,10 @@
 <?php
-
 /**
  * Form generation API
  *
- * @package Cotonti
- * @version 0.9.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package API - Forms
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -159,12 +156,15 @@ function cot_selectbox($chosen, $name, $values, $titles = array(), $add_empty = 
 	$use_titles = count($values) == count($titles);
 	$input_attrs = cot_rc_attr_string($attrs);
 	$chosen = cot_import_buffered($name, $chosen);
-	$multi = is_array($chosen) && isset($input_attrs['multiple']);
+    $multi = is_array($chosen) && (mb_strpos($input_attrs, 'multiple') !== false);
 	$error = $cfg['msg_separate'] ? cot_implode_messages($name, 'error') : '';
 	$rc_name = preg_match('#^(\w+)\[(.*?)\]$#', $name, $mt) ? $mt[1] : $name;
 
 	$selected = (is_null($chosen) || $chosen === '' || $chosen == '00') ? ' selected="selected"' : '';
 	$rc = empty($R["input_option_{$rc_name}"]) ? 'input_option' : "input_option_{$rc_name}";
+
+    $options = '';
+
 	if ($add_empty)
 	{
 		$options .= cot_rc($rc, array(
@@ -187,7 +187,7 @@ function cot_selectbox($chosen, $name, $values, $titles = array(), $add_empty = 
 
 	$rc = empty($R["input_select_{$rc_name}"]) ? (empty($custom_rc) ? 'input_select' : $custom_rc) : "input_select_{$rc_name}";
 
-	$result .= cot_rc($rc, array(
+	$result = cot_rc($rc, array(
 		'name' => $name,
 		'attrs' => $input_attrs,
 		'error' => $error,
@@ -379,10 +379,14 @@ function cot_selectbox_timezone($chosen, $name, $add_gmt = true, $dst = false, $
  * @param string $subcat Show only subcats of selected category
  * @param bool $hideprivate Hide private categories
  * @param bool $is_module TRUE for modules, FALSE for plugins
+ * @param bool $add_empty Allow empty choice
+ * @param mixed $attrs Additional attributes as an associative array or a string
+ * @param string $custom_rc Custom resource string name
  * @return string
  * @global CotDB $db
  */
-function cot_selectbox_structure($extension, $check, $name, $subcat = '', $hideprivate = true, $is_module = true)
+function cot_selectbox_structure($extension, $check, $name, $subcat = '', $hideprivate = true, $is_module = true,
+                                 $add_empty = false, $attrs = '', $custom_rc = '')
 {
 	global $structure;
 
@@ -404,7 +408,7 @@ function cot_selectbox_structure($extension, $check, $name, $subcat = '', $hidep
 			$result_array[$i] = $x['tpath'];
 		}
 	}
-	$result = cot_selectbox($check, $name, array_keys($result_array), array_values($result_array), false);
+	$result = cot_selectbox($check, $name, array_keys($result_array), array_values($result_array), $add_empty, $attrs, $custom_rc);
 
 	return($result);
 }

@@ -2,11 +2,9 @@
 /**
  * Page list
  *
- * @package page
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package Page
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -56,10 +54,6 @@ $cat = &$structure['page'][$c];
 if (empty($s))
 {
 	$s = $cfg['page']['cat_' . $c]['order'];
-}
-elseif (!$db->fieldExists($db_pages, "page_$s"))
-{
-	$s = 'title';
 }
 $w = empty($w) ? $cfg['page']['cat_' . $c]['way'] : $w;
 
@@ -134,6 +128,10 @@ if (!$usr['isadmin'] && $c != 'unvalidated' && $c !== 'saved_drafts')
 	$where['date'] = "page_begin <= {$sys['now']} AND (page_expire = 0 OR page_expire > {$sys['now']})";
 }
 
+if (!$db->fieldExists($db_pages, "page_$s"))
+{
+	$s = 'title';
+}
 $orderby = "page_$s $w";
 
 $list_url_path = array('c' =>$c, 'ord' => $o, 'p' => $p);

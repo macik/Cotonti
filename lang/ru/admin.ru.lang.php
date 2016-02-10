@@ -4,10 +4,8 @@
  * Russian Language File for the Admin Module (admin.ru.lang.php)
  *
  * @package Cotonti
- * @version 0.9.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL.');
@@ -181,7 +179,7 @@ $L['cfg_freetext9_hint'] = ' ';
  * Performance Subsection
  */
 $L['cfg_gzip'] = 'Gzip';
-$L['cfg_gzip_hint'] = 'Gzip-сжатие для исходящего HTML-кода. Не включайте эту опцию, если ваш сервер уже применяет Gzip к страницам сайта. Проверьте, включено ли Gzip-сжатие на вашем сайте, с помощью этого инструмента: <a href="http://www.whatsmyip.org/http-compression-test/">HTTP Compression Test</a>';
+$L['cfg_gzip_hint'] = 'Gzip-сжатие для исходящего HTML-кода. Не включайте эту опцию, если ваш сервер уже применяет Gzip к страницам сайта. Проверьте, включено ли Gzip-сжатие на вашем сайте, с помощью этого инструмента: <a target="_blank" href="http://www.whatsmyip.org/http-compression-test/">HTTP Compression Test</a>';
 $L['cfg_headrc_consolidate'] = 'Объединять ресурсы header/footer (JS/CSS)';
 $L['cfg_headrc_minify'] = 'Минифицировать объединённые JS/CSS';
 $L['cfg_jquery_cdn'] = 'Использовать jQuery из CDN по этой ссылке';
@@ -391,6 +389,7 @@ $L['adm_maxsizeallpfs'] = 'Максимальный размер всех фай
 $L['adm_copyrightsfrom'] = 'Установить права как в группе';
 $L['adm_rights_maintenance'] = 'Разрешить авторизацию при включенном режиме обслуживания';
 $L['adm_skiprights'] = 'Пропустить права для этой группы';
+$L['adm_group_has_no_rights'] = 'Група не имеет прав';
 $L['adm_groups_name_empty'] = 'Название группы не должно быть пустым';
 $L['adm_groups_title_empty'] = 'Титул члена группы (заголовок) не должен быть пустым';
 $L['users_grp_5_title'] = 'Администраторы';
@@ -447,6 +446,12 @@ $L['adm_sort_alphabet'] = 'По алфавиту';
 $L['adm_sort_category'] = 'По категориям';
 
 $L['adm_only_installed'] = 'Установленные';
+
+$L['adm_hook_changed'] = 'Внимание! Это файл установлен неправильно, либо был изменен с момента установки.<br />';
+$L['adm_hook_notregistered'] = ' — Хук(и): <b>{$hooks}</b> не зарегистрирован(ы)<br />';
+$L['adm_hook_notfound'] = ' — Хук(и): <b>{$hooks}</b> установлен(ы) но не найден(ы) в файле<br />';
+$L['adm_hook_filenotfound'] = ' — Файл: <b>{$file}</b> не найден!<br />';
+$L['adm_hook_updatenote'] = 'Обновите расширение, нажав кнопку «<b>Обновить</b>».';
 
 /**
  * Tools Section
@@ -525,6 +530,14 @@ $L['viewdeleteentries'] = 'Просмотр / удаление';
 $L['alreadyaddnewentry'] = 'Новая запись добавлена';
 $L['alreadyupdatednewentry'] = 'Запись обновлена';
 $L['alreadydeletednewentry'] = 'Запись удалена';
+
+$L['adm_invalid_input'] = 'Недопустимое значение \'{$value}\' для переменной \'{$field_name}\'';
+$L['adm_set_default'] = 'Установлено значение по умолчанию';
+$L['adm_int_max'] = 'максимально допустимое значение \'{$value}\'';
+$L['adm_int_min'] = 'минимально допустимое значение \'{$value}\'';
+$L['adm_set'] = 'Установлено ';
+$L['adm_partially_updated'] = 'Не все значения обновлены';
+$L['adm_already_updated'] = 'Уже сохранено';
 
 /**
  * Extra Fields (Common Entries for Pages & Structure & Users)

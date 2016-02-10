@@ -2,11 +2,9 @@
 /**
  * Russian Language File for the Forums Module (forums.ru.lang.php)
  *
- * @package forums
- * @version 0.9.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package Forums
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL.');
@@ -41,6 +39,8 @@ $L['cfg_enablereplyform'] = 'Отображать форму ответа на �
 $L['cfg_enablereplyform_hint'] = '';
 $L['cfg_edittimeout'] = 'Тайм-аут редактирования';
 $L['cfg_edittimeout_hint'] = 'Не позволяет пользователям редактировать или удалять собственные сообщения по истечении тайм-аута (в часах, 0 отключает тайм-аут)';
+$L['cfg_minimaxieditor'] = 'Выбор конфигурации визуального редактора';
+$L['cfg_minimaxieditor_params'] = 'Минимальный набор кнопок,Стандартный набор кнопок,Расширенный набор кнопок'; 
 
 $L['cfg_allowusertext'] = 'Показывать подписи';
 $L['cfg_allowbbcodes'] = 'Разрешить BBCodes';
@@ -99,8 +99,8 @@ $L['forums_sticky'] = 'Тема закреплена (нет новых)';
 $L['forums_newpostssticky'] = 'Тема закреплена (есть новые)';
 $L['forums_locked'] = 'Тема закрыта (нет новых)';
 $L['forums_newpostslocked'] = 'Тема закрыта (есть новые)';
-$L['forums_announcment'] = 'Обьявление';
-$L['forums_newannouncment'] = 'Новые обьявления';
+$L['forums_announcment'] = 'Объявление';
+$L['forums_newannouncment'] = 'Новые объявления';
 $L['forums_movedoutofthissection'] = 'Перенесена в другой раздел';
 
 $L['forums_announcement'] = 'Объявление';

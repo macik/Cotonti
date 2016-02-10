@@ -2,11 +2,9 @@
 /**
  * PM function library.
  *
- * @package pm
- * @version 0.9.6
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD License
+ * @package PM
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -15,11 +13,12 @@ defined('COT_CODE') or die('Wrong URL');
 require_once cot_langfile('pm', 'module');
 require_once cot_incfile('pm', 'module', 'resources');
 
-// Global variables
-global $db_pm, $db_x;
-$db_pm = (isset($db_pm)) ? $db_pm : $db_x . 'pm';
+$parser = ! empty(cot::$sys['parser']) ? cot::$sys['parser'] : cot::$cfg['parser'];
+$editor = cot::$cfg['plugin'][$parser]['editor'];
 
-$cfg['pm']['turnajax'] = ($cfg['jquery'] && $cfg['turnajax'] && $cfg['pm']['turnajax']) ? 1 : 0;
+cot::$db->registerTable('pm');
+
+cot::$cfg['pm']['turnajax'] = cot::$cfg['pm']['turnajax'] && cot::$cfg['jquery'] && cot::$cfg['turnajax'] && $editor != 'elrte' && $editor != 'epiceditor';
 
 /**
  * Send an email in the recipient's language

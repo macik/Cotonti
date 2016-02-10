@@ -2,11 +2,9 @@
 /**
  * URL rewriting functions
  *
- * @package urleditor
- * @version 0.9.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package URLEditor
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -31,10 +29,11 @@ function cot_apply_rwr()
 	{
 		return cot_apply_rwr_custom();
 	}
-	if (isset($_GET['rwr']) && !empty($_GET['rwr'])/* && preg_match('`^[\w\p{L}/\-_\ \+\.]+?$`u', $_GET['rwr'])*/)
+	$rwr = cot_import('rwr', 'G', 'TXT');
+	if (isset($rwr) && !empty($rwr)/* && preg_match('`^[\w\p{L}/\-_\ \+\.]+?$`u', $_GET['rwr'])*/)
 	{
 		// Ignore ending slash and split the path into parts
-		$path = explode('/', (mb_strrpos($_GET['rwr'], '/') === mb_strlen($_GET['rwr']) - 1) ? mb_substr($_GET['rwr'], 0, -1) : $_GET['rwr']);
+		$path = explode('/', (mb_strrpos($rwr, '/') === mb_strlen($rwr) - 1) ? mb_substr($rwr, 0, -1) : $rwr);
 		$count = count($path);
 
 		$rwr_continue = true;
@@ -51,44 +50,47 @@ function cot_apply_rwr()
 			return;
 		}
 
+		$filtered = cot_import($path[0], 'D', 'ALP');
 		if ($count == 1)
 		{
-			if (isset($structure['page'][$path[0]]) || $path[0] == 'unvalidated' || $path[0] == 'saved_drafts')
+			if (isset($structure['page'][$filtered]) || $filtered == 'unvalidated' || $filtered == 'saved_drafts')
 			{
 				// Is a category
 				$_GET['e'] = 'page';
-				$_GET['c'] = $path[0];
+				$_GET['c'] = $filtered;
 			}
-			elseif (file_exists($cfg['modules_dir'] . '/' . $path[0]) || file_exists($cfg['plugins_dir'] . '/' . $path[0]))
+			elseif (file_exists($cfg['modules_dir'] . '/' . $filtered) || file_exists($cfg['plugins_dir'] . '/' . $filtered))
 			{
 				// Is an extension
-				$_GET['e'] = $path[0];
+				$_GET['e'] = $filtered;
 			}
-			elseif (in_array($path[0], array('register', 'profile', 'passrecover')))
+			elseif (in_array($filtered, array('register', 'profile', 'passrecover')))
 			{
 				// Special users shortcuts
 				$_GET['e'] = 'users';
-				$_GET['m'] = $path[0];
+				$_GET['m'] = $filtered;
 			}
 			else
 			{
 				// Maybe it is a system page, if not 404 will be given
 				$_GET['e'] = 'page';
 				$_GET['c'] = 'system';
-				if (is_numeric($path[0]))
+				$id = cot_import($path[0], 'D', 'INT');
+				if ($id)
 				{
-					$_GET['id'] = $path[0];
+					$_GET['id'] = $id;
 				}
 				else
 				{
-					$_GET['al'] = $path[0];
+					$alias = preg_replace('`[+/?%#&]`', '', cot_import($path[0], 'D', 'TXT'));
+					$_GET['al'] = $alias;
 				}
 			}
 		}
 		else
 		{
 			// Special shortcuts
-			if ($path[0] == 'users' && $count == 2 && !isset($_GET['m']))
+			if ($filtered == 'users' && $count == 2 && !isset($_GET['m']))
 			{
 				// User profiles
 				$_GET['e'] = 'users';
@@ -96,7 +98,7 @@ function cot_apply_rwr()
 				$_GET['u'] = $path[1];
 				return;
 			}
-			elseif ($path[0] == 'tags')
+			elseif ($filtered == 'tags')
 			{
 				// Tags
 				$_GET['e'] = 'tags';
@@ -113,7 +115,7 @@ function cot_apply_rwr()
 				return;
 
 			}
-			elseif ($path[0] == 'rss')
+			elseif ($filtered == 'rss')
 			{
 				// RSS
 				$_GET['e'] = 'rss';
@@ -129,9 +131,10 @@ function cot_apply_rwr()
 				return;
 			}
 			$last = $count - 1;
-			$ext = (isset($structure['page'][$path[0]])) ? 'page' : $path[0];
+			$ext = (isset($structure['page'][$filtered])) ? 'page' : $filtered;
 			$_GET['e'] = $ext;
-			if (isset($structure[$ext][$path[$last]]))
+			$cat_chain = array_slice($path, 0, -1);
+			if (isset($structure[$ext][$path[$last]]) && !in_array($path[$last], $cat_chain))
 			{
 				// Is a category
 				$_GET['c'] = $path[$last];
@@ -294,14 +297,12 @@ function cot_url_custom($name, $params = '', $tail = '', $htmlspecialchars_bypas
 	if (!empty($params))
 	{
 		$sep = $htmlspecialchars_bypass ? '&' : '&amp;';
-		if (version_compare(PHP_VERSION, '5.4.0', '>='))
+		$url_tail = (version_compare(PHP_VERSION, '5.4.0', '>=')) 
+			? http_build_query($params, '', $sep, PHP_QUERY_RFC3986) : str_replace('+', '%20', http_build_query($params, '', $sep));
+		if (!empty($url_tail))
 		{
-			$url .= (mb_strpos($url, '?') === false ? '?' : $sep) . http_build_query($params, '', $sep, PHP_QUERY_RFC3986);
-		}
-		else
-		{
-			$url .= (mb_strpos($url, '?') === false ? '?' : $sep) . str_replace('+', '%20', http_build_query($params, '', $sep));
-		}
+			$url .= (mb_strpos($url, '?') === false ? '?' : $sep) . $url_tail;
+		}	
 	}
 	// Almost done
 	$url .= $tail;

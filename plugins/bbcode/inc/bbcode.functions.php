@@ -2,21 +2,25 @@
 /**
  * BBcode parsing and management API
  *
- * @package bbcode
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD License
+ * @package BBcode
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
 
-global $cfg, $db_x, $db_bbcode;
-$db_bbcode = isset($db_bbcode) ? $db_bbcode : $db_x . 'bbcode';
+cot::$db->registerTable('bbcode');
 
-cot_bbcode_load();
-if ($cfg['plugin']['bbcode']['smilies'])
+if (!isset($GLOBALS['bbcode_loaded']))
 {
-	cot_smilies_load();
+	cot_bbcode_load();
+	if (cot::$cfg['plugin']['bbcode']['smilies'])
+	{
+		cot_smilies_load();
+	}
+	$GLOBALS['bbcode_loaded'] = true;
 }
+
 
 /**
  * Registers a new bbcode in database.
@@ -215,7 +219,7 @@ function cot_parse_bbcode($text)
 	$ii = 10000;
 
 	$text = htmlspecialchars($text);
-	$text = cot_parse_autourls($text);
+	cot::$cfg['plugin']['bbcode']['parse_autourls'] && $text = cot_parse_autourls($text);
 
 	$parse_smilies = $cfg['plugin']['bbcode']['smilies'];
 

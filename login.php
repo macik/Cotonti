@@ -3,10 +3,8 @@
  * User Authentication
  *
  * @package Cotonti
- * @version 0.9.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 // Environment
@@ -42,7 +40,7 @@ if ($logout)
 		cot_uriredir_apply($cfg['redirbkonlogout']);
 	}
 
-	if(!empty($_COOKIE[$sys['site_id']]))
+	if(cot_import($sys['site_id'], 'COOKIE', 'ALP'))
 	{
 		cot_setcookie($sys['site_id'], '', time()-63072000, $cfg['cookiepath'], $cfg['cookiedomain'], $sys['secure'], true);
 	}
@@ -89,8 +87,8 @@ if ($a == 'check')
 	}
 	/* ===== */
 
-	$rusername = cot_import('rusername','P','TXT', 100, TRUE);
-	$rpassword = cot_import('rpassword','P','HTM', 32, TRUE);
+	$rusername = cot_import('rusername','P','TXT', 100);
+	$rpassword = cot_import('rpassword','P','HTM', 32);
 	$rcookiettl = cot_import('rcookiettl', 'P', 'INT');
 	$rremember = cot_import('rremember', 'P', 'BOL');
 	$token = cot_import('token', 'G', 'ALP');
@@ -155,7 +153,7 @@ if ($a == 'check')
 	if ($row = $sql->fetch())
 	{
 		$rusername = $row['user_name'];
-		
+
 		// Checking to make sure user doesn't game the free login from
 		if($validating && ($row['user_maingrp']!=4 || $sys['now']>($row['user_regdate']+172800) || $token!=$row['user_token']))
 		{

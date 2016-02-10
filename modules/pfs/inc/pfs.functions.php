@@ -2,11 +2,9 @@
 /**
  * Personal File Storage, function library
  *
- * @package pfs
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD License
+ * @package PFS
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -17,10 +15,9 @@ require_once cot_incfile('pfs', 'module', 'resources');
 
 require_once cot_incfile('forms');
 
-// Global variables
-global $db_pfs, $db_pfs_folders, $db_x;
-$db_pfs = (isset($db_pfs)) ? $db_pfs : $db_x . 'pfs';
-$db_pfs_folders = (isset($db_pfs_folders)) ? $db_pfs_folders : $db_x . 'pfs_folders';
+// Registering tables
+cot::$db->registerTable('pfs');
+cot::$db->registerTable('pfs_folders');
 
 /**
  * Generates a link to PFS
@@ -549,7 +546,7 @@ function cot_pfs_upload($userid, $folderid='')
 									hexdec(substr($cfg['pfs']['th_colorbg'],2,2)), hexdec(substr($cfg['pfs']['th_colorbg'],4,2)));
 								cot_imageresize($pfs_dir_user . $npath . $u_newname,
 									$cfg['pfs']['thumbs_dir_user'] . $npath . $u_newname,
-									$cfg['pfs']['th_x'], $cfg['pfs']['th_y'], 'fit', $th_colorbg,
+									$cfg['pfs']['th_x'], $cfg['pfs']['th_y'], '', $th_colorbg,
 									$cfg['pfs']['th_jpeg_quality'], true);
 							}
 						}

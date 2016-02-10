@@ -2,11 +2,9 @@
 /**
  * English Language File for the Page Module (page.en.lang.php)
  *
- * @package page
- * @version 0.9.6
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package Page
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL.');
@@ -66,7 +64,7 @@ $L['adm_filesize'] = 'File size';
 $L['page_addtitle'] = 'Submit new page';
 $L['page_addsubtitle'] = 'Fill out all required fields and submit the form to continue';
 $L['page_edittitle'] = 'Page properties';
-$L['page_editsubtitle'] = 'Edit all required fields and hit "Sumbit" to continue';
+$L['page_editsubtitle'] = 'Edit all required fields and hit "Submit" to continue';
 
 $L['page_aliascharacters'] = 'Characters \'+\', \'/\', \'?\', \'%\', \'#\', \'&\' are not allowed in aliases';
 $L['page_catmissing'] = 'The category code is missing';

@@ -6,6 +6,7 @@
 		<title>{PHP.L.pfs_title} - {PHP.cfg.maintitle}</title>
 		<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 		<base href="{PHP.cfg.mainurl}/" />
+        {PFS_HEAD}
 		<link href="themes/{PHP.theme}/css/{PHP.scheme}.css" type="text/css" rel="stylesheet" />
 	</head>
 	<body>
@@ -14,7 +15,7 @@
 		<div class="block">
 			<h2 class="pfs">{PFS_TITLE}</h2>
 			<p class="small">{PFS_SUBTITLE}</p>
-			{FILE "{PHP.cfg.themes_dir}/{PHP.cfg.defaulttheme}/warnings.tpl"}
+			{FILE "{PHP.cfg.themes_dir}/{PHP.usr.theme}/warnings.tpl"}
 			<form id="editfolder" action="{PFS_ACTION}" method="post">
 				<table class="cells">
 					<!--<tr>

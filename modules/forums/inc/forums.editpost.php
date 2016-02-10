@@ -3,11 +3,9 @@
 /**
  * Forums posts display.
  *
- * @package forums
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD License
+ * @package Forums
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 defined('COT_CODE') or die('Wrong URL');
 
@@ -204,7 +202,7 @@ $t->assign(array(
 	'FORUMS_EDITPOST_UPDATED' => cot_date('datetime_medium', $rowpost['fp_updated']),
 	'FORUMS_EDITPOST_UPDATED_STAMP' => $rowpost['fp_updated'],
 	'FORUMS_EDITPOST_SEND' => cot_url('forums', "m=editpost&a=update&s=" . $s . "&q=" . $q . "&p=" . $p . '&d=' . $durl . "&" . cot_xg()),
-	'FORUMS_EDITPOST_TEXT' => cot_textarea('rmsgtext', $rowpost['fp_text'], 20, 56, '', 'input_textarea_medieditor'),
+	'FORUMS_EDITPOST_TEXT' => cot_textarea('rmsgtext', $rowpost['fp_text'], 20, 56, '', 'input_textarea_'.$minimaxieditor),
 	'FORUMS_EDITPOST_EDITTIMEOUT' => cot_build_timegap(0, $cfg['forums']['edittimeout'] * 3600)
 ));
 
@@ -212,7 +210,7 @@ $t->assign(array(
 foreach($cot_extrafields[$db_forum_posts] as $exfld)
 {
 	$uname = strtoupper($exfld['field_name']);
-	$exfld_val = cot_build_extrafields('rmsg'.$exfld['field_name'], $exfld, $rowpost[$exfld['field_name']]);
+	$exfld_val = cot_build_extrafields('rmsg'.$exfld['field_name'], $exfld, $rowpost['fp_'.$exfld['field_name']]);
 	$exfld_title = isset($L['forums_posts_'.$exfld['field_name'].'_title']) ?  $L['forums_posts_'.$exfld['field_name'].'_title'] : $exfld['field_description'];
 	$t->assign(array(
 		'FORUMS_EDITPOST_'.$uname => $exfld_val,

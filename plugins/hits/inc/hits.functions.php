@@ -3,16 +3,13 @@
  * Hits API
  *
  * @package Hits
- * @version 0.9.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
 
-global $db_stats, $db_x;
-$db_stats = (isset($db_stats)) ? $db_stats : $db_x . 'stats';
+cot::$db->registerTable('stats');
 
 /*
  * =============================== Statistics API =============================

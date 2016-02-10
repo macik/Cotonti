@@ -3,11 +3,9 @@
 /**
  * Forums posts display.
  *
- * @package forums
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD License
+ * @package Forums
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -56,15 +54,21 @@ if ($a == 'newtopic')
 	$rtopic['ft_title'] = cot_import('rtopictitle','P','TXT', 255);
 	$rtopic['ft_desc'] = cot_import('rtopicdesc','P','TXT', 255);
 	$rtopic['ft_mode'] = (int)(cot_import('rtopicmode','P','BOL') && $cfg['forums']['cat_' . $s]['allowprvtopics']) ? 1 : 0;
-	$rtopic['ft_preview'] = mb_substr(htmlspecialchars($rmsg['fp_text']), 0, 128);
+    $rtopic['ft_preview'] = cot_string_truncate($rmsg['fp_text'], 120);
 
 	if (mb_strlen($rtopic['ft_title']) < $cfg['forums']['mintitlelength'])
 	{
-		cot_error('forums_titletooshort', 'newtopictitle');
+		cot_error('forums_titletooshort', 'rtopictitle');
 	}
 	if (mb_strlen($rmsg['fp_text']) < $cfg['forums']['minpostlength'])
 	{
 		cot_error('forums_messagetooshort', 'rmsgtext');
+	}
+	if (!strpos($structure['forums'][$s]['path'], '.'))
+	{
+		// Attempting to create a topic in a root category
+		include cot_langfile('message', 'core');
+		cot_error($L['msg602_body']);
 	}
 	foreach ($cot_extrafields[$db_forum_topics] as $exfld)
 	{
@@ -164,15 +168,13 @@ require_once $cfg['system_dir'] . '/header.php';
 $mskin = cot_tplfile(array('forums', 'newtopic', $structure['forums'][$s]['tpl']));
 $t = new XTemplate($mskin);
 
-cot_display_messages($t);
-
 $t->assign(array(
 	'FORUMS_NEWTOPIC_PAGETITLE' => $toptitle ,
 	'FORUMS_NEWTOPIC_SUBTITLE' => htmlspecialchars(cot_parse_autourls($structure['forums'][$s]['desc'])),
 	'FORUMS_NEWTOPIC_SEND' => cot_url('forums', "m=newtopic&a=newtopic&s=".$s),
 	'FORUMS_NEWTOPIC_TITLE' => cot_inputbox('text', 'rtopictitle', $rtopic['ft_title'], array('size' => 56, 'maxlength' => 255)),
 	'FORUMS_NEWTOPIC_DESC' => cot_inputbox('text', 'rtopicdesc', $rtopic['ft_desc'], array('size' => 56, 'maxlength' => 255)),
-	'FORUMS_NEWTOPIC_TEXT' => cot_textarea('rmsgtext', $rmsg['fp_text'], 20, 56, '', 'input_textarea_medieditor'),
+	'FORUMS_NEWTOPIC_TEXT' => cot_textarea('rmsgtext', $rmsg['fp_text'], 20, 56, '', 'input_textarea_'.$minimaxieditor),
 	'FORUMS_NEWTOPIC_EDITTIMEOUT' => cot_build_timegap(0, $cfg['forums']['edittimeout'] * 3600)
 ));
 
@@ -180,7 +182,7 @@ $t->assign(array(
 foreach($cot_extrafields[$db_forum_posts] as $exfld)
 {
 	$uname = strtoupper($exfld['field_name']);
-	$exfld_val = cot_build_extrafields('rmsg'.$exfld['field_name'], $exfld, $rmsg[$exfld['field_name']]);
+	$exfld_val = cot_build_extrafields('rmsg'.$exfld['field_name'], $exfld, $rmsg['fp_'.$exfld['field_name']]);
 	$exfld_title = isset($L['forums_posts_'.$exfld['field_name'].'_title']) ?  $L['forums_posts_'.$exfld['field_name'].'_title'] : $exfld['field_description'];
 	$t->assign(array(
 		'FORUMS_NEWTOPIC_'.$uname => $exfld_val,
@@ -195,7 +197,7 @@ foreach($cot_extrafields[$db_forum_posts] as $exfld)
 foreach($cot_extrafields[$db_forum_topics] as $exfld)
 {
 	$uname = strtoupper($exfld['field_name']);
-	$exfld_val = cot_build_extrafields('rtopic'.$exfld['field_name'], $exfld, $rtopic[$exfld['field_name']]);
+	$exfld_val = cot_build_extrafields('rtopic'.$exfld['field_name'], $exfld, $rtopic['ft_'.$exfld['field_name']]);
 	$exfld_title = isset($L['forums_topics_'.$exfld['field_name'].'_title']) ?  $L['forums_topics_'.$exfld['field_name'].'_title'] : $exfld['field_description'];
 	$t->assign(array(
 		'FORUMS_NEWTOPIC_TOPIC_'.$uname => $exfld_val,
@@ -218,6 +220,8 @@ foreach (cot_getextplugins('forums.newtopic.tags') as $pl)
 	include $pl;
 }
 /* ===== */
+
+cot_display_messages($t);
 
 $t->parse('MAIN');
 $t->out('MAIN');

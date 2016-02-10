@@ -9,10 +9,8 @@ Hooks=admin
  * Pages manager & Queue of pages
  *
  * @package Cotonti
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 (defined('COT_CODE') && defined('COT_ADMIN')) or die('Wrong URL.');
@@ -36,26 +34,13 @@ list($pg, $d, $durl) = cot_import_pagenav('d', $cfg['maxrowsperpage']);
 
 $sorttype = cot_import('sorttype', 'R', 'ALP');
 $sorttype = empty($sorttype) ? 'id' : $sorttype;
-$sort_type = array(
-	'id' => $L['Id'],
-	'type' => $L['Type'],
-	'key' => $L['Key'],
-	'title' => $L['Title'],
-	'desc' => $L['Description'],
-	'text' => $L['Body'],
-	'author' => $L['Author'],
-	'ownerid' => $L['Owner'],
-	'date' => $L['Date'],
-	'begin' => $L['Begin'],
-	'expire' => $L['Expire'],
-	'rating' => $L['Rating'],
-	'count' => $L['Hits'],
-	'file' => $L['adm_fileyesno'],
-	'url' => $L['adm_fileurl'],
-	'size' => $L['adm_filesize'],
-	'filecount' => $L['adm_filecount']
-);
+if (!$db->fieldExists($db_pages, "page_$sorttype"))
+{
+	$sorttype = 'id';
+}
 $sqlsorttype = 'page_'.$sorttype;
+
+$sort_type = cot_page_config_order(true);
 
 $sortway = cot_import('sortway', 'R', 'ALP');
 $sortway = empty($sortway) ? 'desc' : $sortway;
@@ -72,7 +57,11 @@ $filter_type = array(
 	'valqueue' => $L['adm_valqueue'],
 	'validated' => $L['adm_validated'],
 	'expired' => $L['adm_expired'],
+	'drafts' => $L['page_drafts'],
 );
+
+$common_params = 'm=page&sorttype='.$sorttype.'&sortway='.$sortway.'&filter='.$filter;
+
 if ($filter == 'all')
 {
 	$sqlwhere = "1 ";
@@ -84,6 +73,10 @@ elseif ($filter == 'valqueue')
 elseif ($filter == 'validated')
 {
 	$sqlwhere = "page_state=0";
+}
+elseif ($filter == 'drafts')
+{
+	$sqlwhere = "page_state=2";
 }
 elseif ($filter == 'expired')
 {
@@ -130,6 +123,7 @@ if ($a == 'validate')
 
 		if ($cache)
 		{
+			$cache->db->remove('structure', 'system');
 			if ($cfg['cache_page'])
 			{
 				$cache->page->clear('page/' . str_replace('.', '/', $structure['page'][$row['page_cat']]['path']));
@@ -171,6 +165,7 @@ elseif ($a == 'unvalidate')
 
 		if ($cache)
 		{
+			$cache->db->remove('structure', 'system');
 			if ($cfg['cache_page'])
 			{
 				$cache->page->clear('page/' . str_replace('.', '/', $structure['page'][$row['page_cat']]['path']));
@@ -225,6 +220,7 @@ elseif ($a == 'delete')
 
 		if ($cache)
 		{
+			$cache->db->remove('structure', 'system');
 			if ($cfg['cache_page'])
 			{
 				$cache->page->clear('page/' . str_replace('.', '/', $structure['page'][$row['page_cat']]['path']));
@@ -246,10 +242,10 @@ elseif ($a == 'update_checked')
 {
 	$paction = cot_import('paction', 'P', 'TXT');
 
-	if ($paction == $L['Validate'] && is_array($_POST['s']))
+	$s = cot_import('s', 'P', 'ARR');
+	if ($paction == $L['Validate'] && is_array($s))
 	{
 		cot_check_xp();
-		$s = cot_import('s', 'P', 'ARR');
 
 		$perelik = '';
 		$notfoundet = '';
@@ -290,6 +286,7 @@ elseif ($a == 'update_checked')
 			}
 		}
 
+		$cache && $cache->db->remove('structure', 'system');
 		if ($cache && $cfg['cache_index'])
 		{
 			$cache->page->clear('index');
@@ -300,10 +297,9 @@ elseif ($a == 'update_checked')
 			cot_message($notfoundet.$perelik.' - '.$L['adm_queue_validated']);
 		}
 	}
-	elseif ($paction == $L['Delete'] && is_array($_POST['s']))
+	elseif ($paction == $L['Delete'] && is_array($s))
 	{
 		cot_check_xp();
-		$s = cot_import('s', 'P', 'ARR');
 
 		$perelik = '';
 		$notfoundet = '';
@@ -351,6 +347,7 @@ elseif ($a == 'update_checked')
 			}
 		}
 
+		$cache && $cache->db->remove('structure', 'system');
 		if ($cache && $cfg['cache_index'])
 		{
 			$cache->page->clear('index');
@@ -364,7 +361,7 @@ elseif ($a == 'update_checked')
 }
 
 $totalitems = $db->query("SELECT COUNT(*) FROM $db_pages WHERE ".$sqlwhere)->fetchColumn();
-$pagenav = cot_pagenav('admin', 'm=page&sorttype='.$sorttype.'&sortway='.$sortway.'&filter='.$filter, $d, $totalitems, $cfg['maxrowsperpage'], 'd', '', $cfg['jquery'] && $cfg['turnajax']);
+$pagenav = cot_pagenav('admin', $common_params, $d, $totalitems, $cfg['maxrowsperpage'], 'd', '', $cfg['jquery'] && $cfg['turnajax']);
 
 $sql_page = $db->query("SELECT p.*, u.user_name
 	FROM $db_pages as p
@@ -387,9 +384,9 @@ foreach ($sql_page->fetchAll() as $row)
 		'ADMIN_PAGE_ID_URL' => cot_url('page', 'c='.$row['page_cat'].'&id='.$row['page_id']),
 		'ADMIN_PAGE_OWNER' => cot_build_user($row['page_ownerid'], htmlspecialchars($row['user_name'])),
 		'ADMIN_PAGE_FILE_BOOL' => $row['page_file'],
-		'ADMIN_PAGE_URL_FOR_VALIDATED' => cot_confirm_url(cot_url('admin', 'm=page&a=validate&id='.$row['page_id'].'&d='.$durl.'&'.cot_xg()), 'page', 'page_confirm_validate'),
-		'ADMIN_PAGE_URL_FOR_UNVALIDATE' => cot_confirm_url(cot_url('admin', 'm=page&a=unvalidate&id='.$row['page_id'].'&d='.$durl.'&'.cot_xg()), 'page', 'page_confirm_unvalidate'),
-		'ADMIN_PAGE_URL_FOR_DELETED' => cot_confirm_url(cot_url('admin', 'm=page&a=delete&id='.$row['page_id'].'&d='.$durl.'&'.cot_xg()), 'page', 'page_confirm_delete'),
+		'ADMIN_PAGE_URL_FOR_VALIDATED' => cot_confirm_url(cot_url('admin', $common_params.'&a=validate&id='.$row['page_id'].'&d='.$durl.'&'.cot_xg()), 'page', 'page_confirm_validate'),
+		'ADMIN_PAGE_URL_FOR_UNVALIDATE' => cot_confirm_url(cot_url('admin', $common_params.'&a=unvalidate&id='.$row['page_id'].'&d='.$durl.'&'.cot_xg()), 'page', 'page_confirm_unvalidate'),
+		'ADMIN_PAGE_URL_FOR_DELETED' => cot_confirm_url(cot_url('admin', $common_params.'&a=delete&id='.$row['page_id'].'&d='.$durl.'&'.cot_xg()), 'page', 'page_confirm_delete'),
 		'ADMIN_PAGE_URL_FOR_EDIT' => cot_url('page', 'm=edit&id='.$row['page_id']),
 		'ADMIN_PAGE_ODDEVEN' => cot_build_oddeven($ii),
 		'ADMIN_PAGE_CAT_COUNT' => $sub_count
@@ -418,7 +415,7 @@ $t->assign(array(
 	'ADMIN_PAGE_URL_ADD' => cot_url('page', 'm=add'),
 	'ADMIN_PAGE_URL_EXTRAFIELDS' => cot_url('admin', 'm=extrafields&n='.$db_pages),
 	'ADMIN_PAGE_URL_STRUCTURE' => cot_url('admin', 'm=structure&n=page'),
-	'ADMIN_PAGE_FORM_URL' => cot_url('admin', 'm=page&a=update_checked&sorttype='.$sorttype.'&sortway='.$sortway.'&filter='.$filter.'&d='.$durl),
+	'ADMIN_PAGE_FORM_URL' => cot_url('admin', $common_params.'&a=update_checked&d='.$durl),
 	'ADMIN_PAGE_ORDER' => cot_selectbox($sorttype, 'sorttype', array_keys($sort_type), array_values($sort_type), false),
 	'ADMIN_PAGE_WAY' => cot_selectbox($sortway, 'sortway', array_keys($sort_way), array_values($sort_way), false),
 	'ADMIN_PAGE_FILTER' => cot_selectbox($filter, 'filter', array_keys($filter_type), array_values($filter_type), false),

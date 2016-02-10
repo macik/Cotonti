@@ -3,11 +3,9 @@
 /**
  * PM
  *
- * @package pm
- * @version 0.9.6
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package PM
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -111,6 +109,8 @@ $title_params = array(
 );
 $out['subtitle'] = cot_title('{BOX} ({COUNT}) - {PM}', $title_params);
 $out['head'] .= $R['code_noindex'];
+
+Resources::linkFileFooter(cot::$cfg['modules_dir'].'/pm/js/pm.js');
 
 /* === Title === */
 $totallines = $db->query("SELECT COUNT(*) FROM $db_pm WHERE $sqlfilter")->fetchColumn();

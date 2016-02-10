@@ -5,10 +5,10 @@ Code=tags
 Name=Tags
 Category=navigation-structure
 Description=Provides tags - site content keywords, tag clouds, tag search and API
-Version=0.9.14
-Date=2012-02-19
-Author=Trustmaster
-Copyright=All rights reserved (c) Vladimir Sibirov 2008-2013
+Version=1.0.3
+Date=2015-12-28
+Author=Trustmaster & Cotonti Team
+Copyright=Copyright (c) Cotonti Team 2010-2015
 Notes=BSD License.
 SQL=
 Auth_guests=R
@@ -16,6 +16,7 @@ Lock_guests=W12345A
 Auth_members=RW
 Lock_members=12345
 Recommends_modules=page,forums
+Recommends_plugins=autocomplete
 [END_COT_EXT]
 
 [BEGIN_COT_EXT_CONFIG]
@@ -33,18 +34,16 @@ perpage=21:string::0:Tags displayed per page in standalone cloud, 0 is all at on
 index=22:select:pages,forums,all:pages:Index page tag cloud area
 noindex=23:radio::1:Exclude from search engine index
 sort=31:select:ID,Title,Date,Category:ID:Default sorting column for tag search results
-css=99:radio:0,1:1:Enable plugin CSS
+css=99:radio::1:Enable plugin CSS
 [END_COT_EXT_CONFIG]
 ==================== */
 
 /**
  * Basic Tags implementation
  *
- * @package tags
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package Tags
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');

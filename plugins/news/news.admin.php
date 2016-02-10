@@ -9,11 +9,9 @@ Hooks=admin.config.edit.loop
 /**
  * news admin usability modification
  *
- * @package news
- * @version 0.7.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package News
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 defined('COT_CODE') or die('Wrong URL');
 
@@ -41,7 +39,16 @@ if ($p == 'news' && $row['config_name'] == 'category' && $cfg['jquery'])
 			$tt->parse('MAIN.ADDITIONAL');
 		}
 	}
-
+	if($jj == 0)
+	{
+		$tt->assign(array(
+			'ADDNUM' => 1,
+			'ADDCATEGORY' => '',
+			'ADDCOUNT' => $cfg['plugin']['news']['maxpages'],
+			'ADDCUT' => ''
+		));
+		$tt->parse('MAIN.ADDITIONAL');		
+	}
 	$jj++;
 	$tt->assign(array(
 		'MAINCATEGORY' => cot_selectbox_structure('page', $index, 'newsmaincat'),

@@ -2,18 +2,16 @@
 /**
  * Online API
  *
- * @package whosonline
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @package WhosOnline
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
 
 require_once cot_langfile('whosonline', 'plug');
 
-global $db_online, $db_x;
-$db_online = (isset($db_online)) ? $db_online : $db_x . 'online';
+cot::$db->registerTable('online');
 
 /**
  * Checks whether user is online

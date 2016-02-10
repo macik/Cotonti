@@ -3,10 +3,8 @@
  * Edit User Profile
  *
  * @package Cotonti
- * @version 0.9.0
- * @author Cotonti Team
- * @copyright Copyright (c) Cotonti Team 2008-2013
- * @license BSD
+ * @copyright (c) Cotonti Team
+ * @license https://github.com/Cotonti/Cotonti/blob/master/License.txt
  */
 
 defined('COT_CODE') or die('Wrong URL');
@@ -14,7 +12,7 @@ defined('COT_CODE') or die('Wrong URL');
 require_once cot_incfile('auth');
 
 $y = cot_import('y','P','TXT');
-$id = cot_import('id','G','INT');
+$id = (int)cot_import('id','G','INT');
 $s = cot_import('s','G','ALP',13);
 $w = cot_import('w','G','ALP',4);
 $d = cot_import('d','G','INT');
@@ -23,6 +21,7 @@ $g = cot_import('g','G','INT');
 
 list($usr['auth_read'], $usr['auth_write'], $usr['isadmin']) = cot_auth('users', 'a');
 cot_block($usr['isadmin']);
+require_once cot_langfile('users', 'module');
 
 /* === Hook === */
 foreach (cot_getextplugins('users.edit.first') as $pl)
@@ -31,8 +30,10 @@ foreach (cot_getextplugins('users.edit.first') as $pl)
 }
 /* ===== */
 
-$sql = $db->query("SELECT * FROM $db_users WHERE user_id = $id");
-cot_die($sql->rowCount()==0);
+cot_die(empty($id), true);
+
+$sql = $db->query("SELECT * FROM $db_users WHERE user_id = ?", $id);
+cot_die($sql->rowCount()==0, true);
 $urr = $sql->fetch();
 
 $sql1 = $db->query("SELECT gru_groupid FROM $db_groups_users WHERE gru_userid=$id and gru_groupid=".COT_GROUP_SUPERADMINS);
@@ -90,9 +91,11 @@ if ($a == 'update')
 	$ruser['user_banexpire'] = cot_import('ruserbanexpire','P','INT');
 	$ruser['user_country'] = cot_import('rusercountry','P','ALP');
 	$ruser['user_text'] = cot_import('rusertext','P','HTM');
+	$rtheme = explode(':', cot_import('rusertheme','P','TXT'));
+	$ruser['user_theme'] = $rtheme[0];
+	$ruser['user_scheme'] = $rtheme[1];
 	$ruser['user_email'] = cot_import('ruseremail','P','TXT');
 	$ruser['user_hideemail'] = cot_import('ruserhideemail','P','INT');
-	$ruser['user_theme'] = cot_import('rusertheme','P','TXT');
 	$ruser['user_lang'] = cot_import('ruserlang','P','ALP');
 	$ruser['user_gender'] = cot_import('rusergender','P','TXT');
 
@@ -236,6 +239,7 @@ if ($a == 'update')
 
 		cot_auth_clear($id);
 		cot_log("Edited user #".$id,'adm');
+		cot_message('User_data_updated');
 		cot_redirect(cot_url('users', "m=edit&id=".$id, '', true));
 	}
 	else
@@ -285,8 +289,8 @@ $t->assign(array(
 	'USERS_EDIT_NAME' => cot_inputbox('text', 'rusername', $urr['user_name'], array('size' => 32, 'maxlength' => 100) + $protected),
 	'USERS_EDIT_ACTIVE' => $user_form_active,
 	'USERS_EDIT_BANNED' => $user_form_banned,
-	'USERS_EDIT_THEME' => cot_inputbox('text', 'rusertheme', $urr['user_theme'], array('size' => 32, 'maxlength' => 32)),
-	'USERS_EDIT_LANG' => cot_inputbox('text', 'ruserlang', $urr['user_lang'], array('size' => 32, 'maxlength' => 32)),
+	'USERS_EDIT_THEME' => cot_selectbox_theme($urr['user_theme'], $urr['user_scheme'], 'rusertheme'),
+	'USERS_EDIT_LANG' => cot_selectbox_lang($urr['user_lang'], 'ruserlang'),
 	'USERS_EDIT_NEWPASS' => cot_inputbox('password', 'rusernewpass', '', array('size' => 12, 'maxlength' => 32, 'autocomplete' => 'off') + $protected),
 	'USERS_EDIT_MAINGRP' => cot_build_group($urr['user_maingrp']),
 	'USERS_EDIT_GROUPS' => cot_build_groupsms($urr['user_id'], $usr['isadmin'], $urr['user_maingrp']),
